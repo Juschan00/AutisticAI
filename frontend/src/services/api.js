@@ -2,19 +2,30 @@ import axios from 'axios';
 
 // ============================================================
 // Axios instance — all requests go through here
-// Backend runs at http://localhost:5000/api
+// Backend runs at http://localhost:5001/api
 // ============================================================
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: 'http://localhost:5001/api',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// ─── Request Interceptor (logging) ───────────────────────────
+// ─── Auth token management ───────────────────────────────────
+let authToken = null;
+
+export const setAuthToken = (token) => {
+    authToken = token;
+};
+
+// ─── Request Interceptor (auth + logging) ────────────────────
 api.interceptors.request.use(
     (config) => {
+        // Attach auth token if available
+        if (authToken) {
+            config.headers.Authorization = `Bearer ${authToken}`;
+        }
         console.log(`[API] ${config.method.toUpperCase()} ${config.url}`, config.params || '');
         return config;
     },
@@ -52,7 +63,7 @@ export const getLocationById = (id) => {
 
 // ─── Reviews ────────────────────────────────────────────────
 export const submitReview = (reviewData) => {
-    // reviewData: { locationId, noise_score, lighting_score, crowd_score, review_text }
+    // reviewData: { locationId, bodyText, rating, noiseLevel, lightingLevel, crowdLevel }
     return api.post('/reviews', reviewData);
 };
 
@@ -61,29 +72,29 @@ export const getReviewsByLocation = (locationId) => {
 };
 
 // ─── Rankings ───────────────────────────────────────────────
-export const getRankings = (sortBy = 'comfort_score') => {
-    // sortBy: 'comfort_score' | 'noise_score' | 'crowd_score' | 'lighting_score'
+export const getRankings = (sortBy = 'comfortScore') => {
+    // sortBy: 'comfortScore' | 'noiseScore' | 'crowdScore' | 'lightingScore'
     return api.get('/rankings', { params: { sort: sortBy } });
 };
 
 // ─── Sensory Profile ────────────────────────────────────────
-export const getSensoryProfile = (userId) => {
-    return api.get(`/profile/${userId}`);
+export const getSensoryProfile = () => {
+    return api.get('/profiles/me');
 };
 
-export const updateSensoryProfile = (userId, profileData) => {
-    // profileData: { noise_tolerance, lighting_tolerance, crowd_tolerance, triggers }
-    return api.put(`/profile/${userId}`, profileData);
+export const updateSensoryProfile = (profileData) => {
+    // profileData: { noiseTolerance, lightingTolerance, crowdTolerance, notes }
+    return api.put('/profiles/me', profileData);
 };
 
 // ─── AI Insights (Gemini) ───────────────────────────────────
 export const getAIInsights = (locationId) => {
-    return api.get(`/insights/${locationId}`);
+    return api.get(`/ai/${locationId}`);
 };
 
 export const analyzeReview = (reviewText) => {
-    // Sends review text to backend → Gemini API parses sensory signals
-    return api.post('/insights/analyze', { text: reviewText });
+    // Sends review text to backend → AI parses sensory signals
+    return api.post('/ai/analyze', { text: reviewText });
 };
 
 export default api;

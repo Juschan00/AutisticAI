@@ -6,6 +6,7 @@ import App from './App.jsx'
 
 const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
+const AUTH0_AUDIENCE = import.meta.env.VITE_AUTH0_AUDIENCE || 'https://sensorysafe-api';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')).render(
       clientId={AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: window.location.origin,
+        audience: AUTH0_AUDIENCE,
       }}
     >
       <App />

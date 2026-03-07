@@ -3,10 +3,10 @@ import { submitReview, analyzeReview } from '../services/api';
 
 function SubmitReview({ location, onClose, onSubmitted }) {
     const [formData, setFormData] = useState({
-        noise_score: 5,
-        lighting_score: 5,
-        crowd_score: 5,
-        review_text: '',
+        noiseLevel: 5,
+        lightingLevel: 5,
+        crowdLevel: 5,
+        bodyText: '',
     });
     const [submitting, setSubmitting] = useState(false);
     const [aiParsing, setAiParsing] = useState(false);
@@ -18,22 +18,22 @@ function SubmitReview({ location, onClose, onSubmitted }) {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Send review text to Gemini for sensory signal extraction
+    // Send review text to AI for sensory signal extraction
     const handleAnalyze = () => {
-        if (!formData.review_text.trim()) return;
+        if (!formData.bodyText.trim()) return;
 
-        console.log('[SubmitReview] Sending to Gemini for analysis:', formData.review_text);
+        console.log('[SubmitReview] Sending for AI analysis:', formData.bodyText);
         setAiParsing(true);
         setAiResult(null);
 
-        analyzeReview(formData.review_text)
+        analyzeReview(formData.bodyText)
             .then((res) => {
-                console.log('[SubmitReview] Gemini analysis result:', res.data);
+                console.log('[SubmitReview] AI analysis result:', res.data);
                 setAiResult(res.data);
                 setAiParsing(false);
             })
             .catch((err) => {
-                console.warn('[SubmitReview] Gemini analysis failed:', err.message);
+                console.warn('[SubmitReview] AI analysis failed:', err.message);
                 setAiResult({ error: 'AI analysis unavailable — backend may be offline.' });
                 setAiParsing(false);
             });
@@ -43,9 +43,12 @@ function SubmitReview({ location, onClose, onSubmitted }) {
         e.preventDefault();
 
         const payload = {
-            locationId: location?.id || location?.name || 'unknown',
-            locationName: location?.name || 'Unknown Location',
-            ...formData,
+            locationId: location?.id || 'unknown',
+            bodyText: formData.bodyText,
+            rating: 5,
+            noiseLevel: formData.noiseLevel,
+            lightingLevel: formData.lightingLevel,
+            crowdLevel: formData.crowdLevel,
         };
 
         console.log('[SubmitReview] Submitting review:', payload);
@@ -61,7 +64,7 @@ function SubmitReview({ location, onClose, onSubmitted }) {
             })
             .catch((err) => {
                 console.error('[SubmitReview] Submit failed:', err.message);
-                setError(err.response?.data?.message || err.message);
+                setError(err.response?.data?.error || err.message);
                 setSubmitting(false);
             });
     };
@@ -93,42 +96,42 @@ function SubmitReview({ location, onClose, onSubmitted }) {
                 <form onSubmit={handleSubmit}>
                     {/* Noise Score */}
                     <div style={{ marginBottom: 16 }}>
-                        <label>Noise Level: <strong>{formData.noise_score}</strong>/10</label>
+                        <label>Noise Level: <strong>{formData.noiseLevel}</strong>/10</label>
                         <br />
                         <input
                             type="range"
                             min="1"
                             max="10"
-                            value={formData.noise_score}
-                            onChange={(e) => handleChange('noise_score', Number(e.target.value))}
+                            value={formData.noiseLevel}
+                            onChange={(e) => handleChange('noiseLevel', Number(e.target.value))}
                             style={{ width: '100%' }}
                         />
                     </div>
 
                     {/* Lighting Score */}
                     <div style={{ marginBottom: 16 }}>
-                        <label>Lighting Level: <strong>{formData.lighting_score}</strong>/10</label>
+                        <label>Lighting Level: <strong>{formData.lightingLevel}</strong>/10</label>
                         <br />
                         <input
                             type="range"
                             min="1"
                             max="10"
-                            value={formData.lighting_score}
-                            onChange={(e) => handleChange('lighting_score', Number(e.target.value))}
+                            value={formData.lightingLevel}
+                            onChange={(e) => handleChange('lightingLevel', Number(e.target.value))}
                             style={{ width: '100%' }}
                         />
                     </div>
 
                     {/* Crowd Score */}
                     <div style={{ marginBottom: 16 }}>
-                        <label>Crowd Level: <strong>{formData.crowd_score}</strong>/10</label>
+                        <label>Crowd Level: <strong>{formData.crowdLevel}</strong>/10</label>
                         <br />
                         <input
                             type="range"
                             min="1"
                             max="10"
-                            value={formData.crowd_score}
-                            onChange={(e) => handleChange('crowd_score', Number(e.target.value))}
+                            value={formData.crowdLevel}
+                            onChange={(e) => handleChange('crowdLevel', Number(e.target.value))}
                             style={{ width: '100%' }}
                         />
                     </div>
@@ -138,8 +141,8 @@ function SubmitReview({ location, onClose, onSubmitted }) {
                         <label>Your Review:</label>
                         <br />
                         <textarea
-                            value={formData.review_text}
-                            onChange={(e) => handleChange('review_text', e.target.value)}
+                            value={formData.bodyText}
+                            onChange={(e) => handleChange('bodyText', e.target.value)}
                             placeholder="Describe the sensory environment..."
                             rows={4}
                             style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #444', background: '#222', color: '#fff', resize: 'vertical' }}
@@ -150,7 +153,7 @@ function SubmitReview({ location, onClose, onSubmitted }) {
                     <button
                         type="button"
                         onClick={handleAnalyze}
-                        disabled={aiParsing || !formData.review_text.trim()}
+                        disabled={aiParsing || !formData.bodyText.trim()}
                         style={{ marginBottom: 12, cursor: 'pointer', padding: '6px 12px' }}
                     >
                         {aiParsing ? '🔄 Analyzing...' : '🤖 Analyze with AI'}

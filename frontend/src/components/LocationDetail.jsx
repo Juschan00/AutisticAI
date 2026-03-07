@@ -67,27 +67,22 @@ function LocationDetail({ location, onClose }) {
             {/* Sensory Rating Breakdown */}
             <div style={{ margin: '16px 0' }}>
                 <h3>Sensory Ratings</h3>
-                <div>Comfort: <strong>{location.comfort_score ?? '–'}</strong>/10</div>
-                <div>Noise: <strong>{location.noise_score ?? '–'}</strong>/10</div>
-                <div>Lighting: <strong>{location.lighting_score ?? '–'}</strong>/10</div>
-                <div>Crowds: <strong>{location.crowd_score ?? '–'}</strong>/10</div>
+                <div>Comfort: <strong>{location.comfortScore ?? '–'}</strong>/10</div>
+                <div>Noise: <strong>{location.noiseScore ?? '–'}</strong>/10</div>
+                <div>Lighting: <strong>{location.lightingScore ?? '–'}</strong>/10</div>
+                <div>Crowds: <strong>{location.crowdScore ?? '–'}</strong>/10</div>
             </div>
 
-            {/* AI Summary (Gemini) */}
+            {/* AI Summary */}
             <div style={{ margin: '16px 0' }}>
                 <h3>🤖 AI Insights</h3>
                 {loading && <div>Loading insights...</div>}
-                {location.ai_summary && (
-                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 6 }}>
-                        {location.ai_summary}
-                    </div>
-                )}
                 {aiInsight && (
                     <div style={{ background: 'rgba(255,255,255,0.1)', padding: 12, borderRadius: 6, marginTop: 8 }}>
                         {aiInsight.summary || JSON.stringify(aiInsight)}
                     </div>
                 )}
-                {!loading && !location.ai_summary && !aiInsight && (
+                {!loading && !aiInsight && (
                     <div style={{ color: '#888' }}>No AI insights available yet.</div>
                 )}
             </div>
@@ -100,10 +95,10 @@ function LocationDetail({ location, onClose }) {
                     reviews.map((review, i) => (
                         <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
                             <div style={{ fontSize: 12, color: '#888' }}>{review.user || 'Anonymous'}</div>
-                            <div>{review.text || review.review_text}</div>
-                            {review.noise_score != null && (
+                            <div>{review.bodyText || review.text}</div>
+                            {review.noiseLevel != null && (
                                 <div style={{ fontSize: 11, color: '#aaa', marginTop: 4 }}>
-                                    Noise: {review.noise_score} | Light: {review.lighting_score} | Crowd: {review.crowd_score}
+                                    Noise: {review.noiseLevel} | Light: {review.lightingLevel} | Crowd: {review.crowdLevel}
                                 </div>
                             )}
                         </div>

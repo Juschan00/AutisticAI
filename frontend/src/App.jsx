@@ -1,14 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
 import MapView from './components/MapView';
 import AuthButton from './components/AuthButton';
 import LocationDetail from './components/LocationDetail';
 import SubmitReview from './components/SubmitReview';
 import Rankings from './components/Rankings';
+import { setAuthToken } from './services/api';
 
 function App() {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showRankings, setShowRankings] = useState(false);
+
+  // Wire Auth0 token into API calls
+  useEffect(() => {
+    if (isAuthenticated) {
+      getAccessTokenSilently()
+        .then((token) => {
+          console.log('[App] Auth token acquired');
+          setAuthToken(token);
+        })
+        .catch((err) => {
+          console.warn('[App] Failed to get access token:', err.message);
+        });
+    } else {
+      setAuthToken(null);
+    }
+  }, [isAuthenticated, getAccessTokenSilently]);
 
   const handleLocationSelect = (location) => {
     console.log('[App] Location selected:', location.name);

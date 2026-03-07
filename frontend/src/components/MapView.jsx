@@ -19,16 +19,16 @@ const INITIAL_VIEW = {
 
 // Fallback dummy data (used when backend is not running)
 const FALLBACK_DATA = [
-    { position: [-80.52, 43.46], noise_score: 2, lighting_score: 5, crowd_score: 3, comfort_score: 8.5, name: 'Quiet Library Cafe', ai_summary: 'Calm environment, good lighting.' },
-    { position: [-80.525, 43.465], noise_score: 8, lighting_score: 8, crowd_score: 7, comfort_score: 3.0, name: 'Downtown Food Court', ai_summary: 'Very loud, bright lights, crowded.' },
-    { position: [-80.515, 43.455], noise_score: 1, lighting_score: 4, crowd_score: 2, comfort_score: 9.2, name: 'Riverside Park', ai_summary: 'Peaceful with natural lighting.' },
-    { position: [-80.53, 43.47], noise_score: 9, lighting_score: 9, crowd_score: 8, comfort_score: 2.1, name: 'Nightclub District Cafe', ai_summary: 'Extremely loud with flashing lights.' },
-    { position: [-80.51, 43.45], noise_score: 3, lighting_score: 6, crowd_score: 4, comfort_score: 7.8, name: 'Maple Study Lounge', ai_summary: 'Quiet study space, moderate lighting.' },
-    { position: [-80.535, 43.458], noise_score: 7, lighting_score: 7, crowd_score: 9, comfort_score: 2.8, name: 'Mall Atrium', ai_summary: 'Echoy, large crowds, bright lights.' },
-    { position: [-80.508, 43.462], noise_score: 1, lighting_score: 3, crowd_score: 1, comfort_score: 9.5, name: 'Botanical Garden', ai_summary: 'Very quiet, natural dim lighting.' },
-    { position: [-80.527, 43.448], noise_score: 6, lighting_score: 5, crowd_score: 6, comfort_score: 5.1, name: 'Bus Terminal', ai_summary: 'Moderate noise from buses, average crowds.' },
-    { position: [-80.518, 43.472], noise_score: 2, lighting_score: 4, crowd_score: 2, comfort_score: 8.9, name: 'Small Bookstore', ai_summary: 'Cozy and quiet, soft lighting.' },
-    { position: [-80.505, 43.44], noise_score: 5, lighting_score: 6, crowd_score: 5, comfort_score: 6.2, name: 'Community Center', ai_summary: 'Varies by time, generally moderate.' },
+    { position: [-80.52, 43.46], noiseScore: 2, lightingScore: 5, crowdScore: 3, comfortScore: 8.5, name: 'Quiet Library Cafe' },
+    { position: [-80.525, 43.465], noiseScore: 8, lightingScore: 8, crowdScore: 7, comfortScore: 3.0, name: 'Downtown Food Court' },
+    { position: [-80.515, 43.455], noiseScore: 1, lightingScore: 4, crowdScore: 2, comfortScore: 9.2, name: 'Riverside Park' },
+    { position: [-80.53, 43.47], noiseScore: 9, lightingScore: 9, crowdScore: 8, comfortScore: 2.1, name: 'Nightclub District Cafe' },
+    { position: [-80.51, 43.45], noiseScore: 3, lightingScore: 6, crowdScore: 4, comfortScore: 7.8, name: 'Maple Study Lounge' },
+    { position: [-80.535, 43.458], noiseScore: 7, lightingScore: 7, crowdScore: 9, comfortScore: 2.8, name: 'Mall Atrium' },
+    { position: [-80.508, 43.462], noiseScore: 1, lightingScore: 3, crowdScore: 1, comfortScore: 9.5, name: 'Botanical Garden' },
+    { position: [-80.527, 43.448], noiseScore: 6, lightingScore: 5, crowdScore: 6, comfortScore: 5.1, name: 'Bus Terminal' },
+    { position: [-80.518, 43.472], noiseScore: 2, lightingScore: 4, crowdScore: 2, comfortScore: 8.9, name: 'Small Bookstore' },
+    { position: [-80.505, 43.44], noiseScore: 5, lightingScore: 6, crowdScore: 5, comfortScore: 6.2, name: 'Community Center' },
 ];
 
 // Convert GeoJSON features to flat array for deck.gl
@@ -137,7 +137,7 @@ function MapView({ onLocationSelect }) {
                     id: 'comfort-heatmap',
                     data: locationData,
                     getPosition: (d) => d.position,
-                    getWeight: (d) => d.comfort_score || 5,
+                    getWeight: (d) => d.comfortScore || 5,
                     radiusPixels: 60,
                     intensity: 1,
                     threshold: 0.05,
@@ -161,8 +161,8 @@ function MapView({ onLocationSelect }) {
                     id: 'crowd-hexagon',
                     data: locationData,
                     getPosition: (d) => d.position,
-                    getElevationWeight: (d) => d.crowd_score || 5,
-                    getColorWeight: (d) => d.crowd_score || 5,
+                    getElevationWeight: (d) => d.crowdScore || 5,
+                    getColorWeight: (d) => d.crowdScore || 5,
                     elevationScale: 50,
                     radius: 200,
                     extruded: true,
@@ -187,11 +187,11 @@ function MapView({ onLocationSelect }) {
                     id: 'noise-lighting-scatter',
                     data: locationData,
                     getPosition: (d) => d.position,
-                    getRadius: (d) => (d.noise_score + d.lighting_score) * 15,
+                    getRadius: (d) => (d.noiseScore + d.lightingScore) * 15,
                     getFillColor: (d) => {
                         // Blend: noise = red channel, lighting = blue channel
-                        const n = (d.noise_score || 5) / 10;
-                        const l = (d.lighting_score || 5) / 10;
+                        const n = (d.noiseScore || 5) / 10;
+                        const l = (d.lightingScore || 5) / 10;
                         return [255 * n, 100, 255 * l, 160];
                     },
                     radiusMinPixels: 6,
@@ -216,7 +216,7 @@ function MapView({ onLocationSelect }) {
                     getPosition: (d) => d.position,
                     getRadius: 40,
                     getFillColor: (d) => {
-                        const score = (d.comfort_score || 5) / 10;
+                        const score = (d.comfortScore || 5) / 10;
                         return [255 * (1 - score), 255 * score, 80, 220];
                     },
                     radiusMinPixels: 10,
@@ -263,10 +263,10 @@ function MapView({ onLocationSelect }) {
                 getTooltip: ({ object }) =>
                     object && {
                         html: `<b>${object.name || 'Zone'}</b><br/>
-                   Comfort: ${object.comfort_score ?? '–'}/10<br/>
-                   Noise: ${object.noise_score ?? '–'}/10<br/>
-                   Lighting: ${object.lighting_score ?? '–'}/10<br/>
-                   Crowds: ${object.crowd_score ?? '–'}/10`,
+                   Comfort: ${object.comfortScore ?? '–'}/10<br/>
+                   Noise: ${object.noiseScore ?? '–'}/10<br/>
+                   Lighting: ${object.lightingScore ?? '–'}/10<br/>
+                   Crowds: ${object.crowdScore ?? '–'}/10`,
                         style: {
                             backgroundColor: 'rgba(0,0,0,0.8)',
                             color: '#fff',

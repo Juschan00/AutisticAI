@@ -14,10 +14,12 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^7.4.2",
+    "cloudinary": "^2.9.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-oauth2-jwt-bearer": "^1.7.4",
+    "multer": "^2.1.1",
     "prisma": "^7.4.2"
   },
   "devDependencies": {

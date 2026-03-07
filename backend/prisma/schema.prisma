@@ -51,6 +51,8 @@ model Review {
   visitedAt       DateTime?
   createdAt       DateTime  @default(now())
 
+  imageUrl        String?
+
   noiseLevel      Int?
   lightingLevel   Int?
   crowdLevel      Int?

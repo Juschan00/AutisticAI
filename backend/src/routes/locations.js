@@ -2,6 +2,8 @@ import express from "express";
 import { toGeoJSON } from "../lib/geojson.js";
 import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
+import { syncUser } from "../middleware/syncUser.js";
+
 
 const router = express.Router()
 
@@ -55,7 +57,7 @@ router.get("/heatmap", async (req, res) => {
 })
 
 // GET /locations/match — personalized match scores (protected)
-router.get("/match", requireAuth, async (req, res) => {
+router.get("/match", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
 
@@ -128,6 +130,30 @@ router.get("/search", async (req, res) => {
         res.json(toGeoJSON(locations));
     } catch (error) {
         console.error("Error searching locations:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// GET /locations/:id — single location detail (public)
+router.get("/:id", async (req, res) => {
+    try {
+        const location = await prisma.location.findUnique({
+            where: { id: req.params.id },
+            include: {
+                sensoryScores: true,
+                reviews: {
+                    orderBy: { createdAt: "desc" },
+                    take: 10,
+                }
+            }
+        });
+
+        if (!location) return res.status(404).json({ error: "Location not found" });
+
+        res.json(location);
+    } catch (error) {
+        console.error("Error fetching location:", error);
         res.status(500).json({ error: error.message });
     }
 });

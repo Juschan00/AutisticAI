@@ -2,13 +2,14 @@ import express from "express";
 import multer from "multer";
 import cloudinary from "../lib/cloudinary.js";
 import { requireAuth } from "../middleware/auth.js";
+import { syncUser } from "../middleware/syncUser.js";
 
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // POST /upload — upload image to Cloudinary (protected)
-router.post("/", requireAuth, upload.single("image"), async (req, res) => {
+router.post("/", requireAuth, syncUser, upload.single("image"), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No image provided" });
 

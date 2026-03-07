@@ -5,7 +5,7 @@ import { requireAuth } from "../middleware/auth.js";
 const router = express.Router();
 
 // GET /profiles/me — get my sensory profile (protected)
-router.get("/me", requireAuth, async (req, res) => {
+router.get("/me", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
 
@@ -26,7 +26,7 @@ router.get("/me", requireAuth, async (req, res) => {
 });
 
 // PUT /profiles/me — create or update my sensory profile (protected)
-router.put("/me", requireAuth, async (req, res) => {
+router.put("/me", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
         const { noiseTolerance, lightingTolerance, crowdTolerance, notes } = req.body;

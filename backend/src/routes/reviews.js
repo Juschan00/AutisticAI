@@ -2,6 +2,7 @@ import express from "express";
 import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import { syncUser } from "../middleware/syncUser.js";
+import { recalculateScores } from "../lib/scores.js";
 
 const router = express.Router();
 
@@ -40,6 +41,9 @@ router.post("/", requireAuth, syncUser, async (req, res) => {
                 imageUrl: imageUrl ?? null,
             }
         });
+
+        // recalculate scores after new review
+        await recalculateScores(locationId);
 
         res.status(201).json(review);
     } catch (error) {

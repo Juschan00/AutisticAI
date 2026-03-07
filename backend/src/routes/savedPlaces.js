@@ -1,11 +1,12 @@
 import express from "express";
 import prisma from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
+import { syncUser } from "../middleware/syncUser.js";
 
 const router = express.Router();
 
 // GET /saved-places — get my saved places (protected)
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
         const user = await prisma.user.findUnique({ where: { auth0Id } });
@@ -29,7 +30,7 @@ router.get("/", requireAuth, async (req, res) => {
 });
 
 // POST /saved-places — save a location (protected)
-router.post("/", requireAuth, async (req, res) => {
+router.post("/", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
         const { locationId } = req.body;
@@ -49,7 +50,7 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 // DELETE /saved-places/:locationId — remove saved location (protected)
-router.delete("/:locationId", requireAuth, async (req, res) => {
+router.delete("/:locationId", requireAuth, syncUser, async (req, res) => {
     try {
         const auth0Id = req.auth.payload.sub;
         const user = await prisma.user.findUnique({ where: { auth0Id } });

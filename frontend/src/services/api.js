@@ -1,11 +1,7 @@
 import axios from 'axios';
 
-// ============================================================
-// Axios instance — all requests go through here
-// Backend runs at http://localhost:5000/api
-// ============================================================
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: '',
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
@@ -52,38 +48,34 @@ export const getLocationById = (id) => {
 
 // ─── Reviews ────────────────────────────────────────────────
 export const submitReview = (reviewData) => {
-    // reviewData: { locationId, noise_score, lighting_score, crowd_score, review_text }
     return api.post('/reviews', reviewData);
 };
 
 export const getReviewsByLocation = (locationId) => {
-    return api.get(`/reviews/${locationId}`);
+    return api.get('/reviews', { params: { locationId } });
 };
 
 // ─── Rankings ───────────────────────────────────────────────
 export const getRankings = (sortBy = 'comfort_score') => {
-    // sortBy: 'comfort_score' | 'noise_score' | 'crowd_score' | 'lighting_score'
     return api.get('/rankings', { params: { sort: sortBy } });
 };
 
 // ─── Sensory Profile ────────────────────────────────────────
-export const getSensoryProfile = (userId) => {
-    return api.get(`/profile/${userId}`);
+export const getSensoryProfile = () => {
+    return api.get('/profiles/me');
 };
 
-export const updateSensoryProfile = (userId, profileData) => {
-    // profileData: { noise_tolerance, lighting_tolerance, crowd_tolerance, triggers }
-    return api.put(`/profile/${userId}`, profileData);
+export const updateSensoryProfile = (profileData) => {
+    return api.put('/profiles/me', profileData);
 };
 
 // ─── AI Insights (Gemini) ───────────────────────────────────
 export const getAIInsights = (locationId) => {
-    return api.get(`/insights/${locationId}`);
+    return api.get('/ai', { params: { locationId } });
 };
 
 export const analyzeReview = (reviewText) => {
-    // Sends review text to backend → Gemini API parses sensory signals
-    return api.post('/insights/analyze', { text: reviewText });
+    return api.post('/ai/analyze', { text: reviewText });
 };
 
 export default api;

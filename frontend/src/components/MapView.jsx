@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Deck } from '@deck.gl/core';
 import { ScatterplotLayer } from '@deck.gl/layers';
@@ -32,15 +32,26 @@ const FALLBACK_DATA = [
 ];
 
 // Convert GeoJSON features to flat array for deck.gl
+// Backend returns camelCase keys; remap to snake_case used by frontend components
 function parseGeoJSON(geojson) {
     if (!geojson?.features) return [];
-    return geojson.features.map((f) => ({
-        position: f.geometry.coordinates,
-        ...f.properties,
-    }));
+    return geojson.features.map((f) => {
+        const p = f.properties;
+        return {
+            position: f.geometry.coordinates,
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            noise_score: p.noiseScore,
+            lighting_score: p.lightingScore,
+            crowd_score: p.crowdScore,
+            comfort_score: p.comfortScore,
+            review_count: p.reviewCount,
+        };
+    });
 }
 
-function MapView({ onLocationSelect }) {
+function MapView({ onLocationSelect, filter, searchQuery }) {
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
     const deckRef = useRef(null);
@@ -48,6 +59,31 @@ function MapView({ onLocationSelect }) {
     const [error, setError] = useState(null);
     const [locationData, setLocationData] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const filteredData = useMemo(() => {
+        let data = locationData;
+        if (filter) {
+            const f = filter.toLowerCase();
+            data = data.filter((d) => {
+                const name = (d.name || '').toLowerCase();
+                const cat = (d.category || '').toLowerCase();
+                if (f === 'quiet' || f === 'library') return d.noise_score <= 3 || cat.includes('library');
+                if (f === 'soft-lighting' || f === 'cafe') return d.lighting_score <= 4 || cat.includes('cafe');
+                if (f === 'low-crowds' || f === 'retail') return d.crowd_score <= 3 || cat.includes('retail');
+                if (f === 'outdoor' || f === 'park') return cat.includes('park') || cat.includes('outdoor') || name.includes('park');
+                if (f === 'museum') return cat.includes('museum') || name.includes('museum');
+                return true;
+            });
+        }
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            data = data.filter((d) =>
+                (d.name || '').toLowerCase().includes(q) ||
+                (d.category || '').toLowerCase().includes(q)
+            );
+        }
+        return data.length > 0 ? data : locationData;
+    }, [locationData, filter, searchQuery]);
 
     // Layer visibility toggles
     const [layers, setLayers] = useState({
@@ -135,7 +171,7 @@ function MapView({ onLocationSelect }) {
             activeLayers.push(
                 new HeatmapLayer({
                     id: 'comfort-heatmap',
-                    data: locationData,
+                    data: filteredData,
                     getPosition: (d) => d.position,
                     getWeight: (d) => d.comfort_score || 5,
                     radiusPixels: 60,
@@ -159,7 +195,7 @@ function MapView({ onLocationSelect }) {
             activeLayers.push(
                 new HexagonLayer({
                     id: 'crowd-hexagon',
-                    data: locationData,
+                    data: filteredData,
                     getPosition: (d) => d.position,
                     getElevationWeight: (d) => d.crowd_score || 5,
                     getColorWeight: (d) => d.crowd_score || 5,
@@ -185,7 +221,7 @@ function MapView({ onLocationSelect }) {
             activeLayers.push(
                 new ScatterplotLayer({
                     id: 'noise-lighting-scatter',
-                    data: locationData,
+                    data: filteredData,
                     getPosition: (d) => d.position,
                     getRadius: (d) => (d.noise_score + d.lighting_score) * 15,
                     getFillColor: (d) => {
@@ -212,7 +248,7 @@ function MapView({ onLocationSelect }) {
             activeLayers.push(
                 new ScatterplotLayer({
                     id: 'location-pins',
-                    data: locationData,
+                    data: filteredData,
                     getPosition: (d) => d.position,
                     getRadius: 40,
                     getFillColor: (d) => {
@@ -236,7 +272,7 @@ function MapView({ onLocationSelect }) {
         }
 
         return activeLayers;
-    }, [locationData, layers, onLocationSelect]);
+    }, [filteredData, layers, onLocationSelect]);
 
     // Initialize / update deck.gl
     useEffect(() => {
@@ -338,7 +374,8 @@ function MapView({ onLocationSelect }) {
                     </label>
                 ))}
                 <div style={{ marginTop: 8, color: '#888', fontSize: 11 }}>
-                    {locationData.length} locations loaded
+                    {filteredData.length} of {locationData.length} locations
+                    {filter && <span> ({filter})</span>}
                 </div>
             </div>
         </>

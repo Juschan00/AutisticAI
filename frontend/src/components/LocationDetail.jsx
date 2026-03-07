@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getLocationById, getReviewsByLocation, getAIInsights } from '../services/api';
+import { getReviewsByLocation, getAIInsights } from '../services/api';
 
 function LocationDetail({ location, onClose }) {
     const [reviews, setReviews] = useState([]);

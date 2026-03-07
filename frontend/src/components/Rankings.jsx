@@ -28,7 +28,15 @@ function Rankings({ onClose }) {
         getRankings(sortBy)
             .then((res) => {
                 console.log('[Rankings] Data loaded:', res.data);
-                setRankings(res.data?.rankings || res.data || []);
+                const raw = res.data?.rankings || res.data || [];
+                const mapped = raw.map((r) => ({
+                    ...r,
+                    comfort_score: r.comfortScore ?? r.comfort_score,
+                    noise_score: r.noiseScore ?? r.noise_score,
+                    crowd_score: r.crowdScore ?? r.crowd_score,
+                    lighting_score: r.lightingScore ?? r.lighting_score,
+                }));
+                setRankings(mapped);
                 setLoading(false);
             })
             .catch((err) => {

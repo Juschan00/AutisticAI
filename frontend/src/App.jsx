@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import LaunchScreen from './components/LaunchScreen';
 import MapView from './components/MapView';
 import AuthButton from './components/AuthButton';
 import LocationDetail from './components/LocationDetail';
@@ -6,9 +7,25 @@ import SubmitReview from './components/SubmitReview';
 import Rankings from './components/Rankings';
 
 function App() {
+  const [showMap, setShowMap] = useState(false);
+  const [mapContext, setMapContext] = useState({ filter: null, searchQuery: '' });
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showRankings, setShowRankings] = useState(false);
+
+  const handleExploreMap = ({ filter = null, searchQuery = '' } = {}) => {
+    console.log('[App] Navigating to map:', { filter, searchQuery });
+    setMapContext({ filter, searchQuery });
+    setShowMap(true);
+  };
+
+  const handleBackToHome = () => {
+    setShowMap(false);
+    setMapContext({ filter: null, searchQuery: '' });
+    setSelectedLocation(null);
+    setShowReviewForm(false);
+    setShowRankings(false);
+  };
 
   const handleLocationSelect = (location) => {
     console.log('[App] Location selected:', location.name);
@@ -25,9 +42,13 @@ function App() {
     setShowReviewForm(false);
   };
 
+  if (!showMap) {
+    return <LaunchScreen onExploreMap={handleExploreMap} />;
+  }
+
   return (
     <div id="app-root" style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <MapView onLocationSelect={handleLocationSelect} />
+      <MapView onLocationSelect={handleLocationSelect} filter={mapContext.filter} searchQuery={mapContext.searchQuery} />
 
       {/* Top-left: Auth + Nav buttons */}
       <div style={{
@@ -48,7 +69,13 @@ function App() {
           onClick={() => setShowRankings(true)}
           style={{ cursor: 'pointer', padding: '4px 10px', background: '#333', color: '#fff', border: '1px solid #555', borderRadius: 4 }}
         >
-          📊 Rankings
+          Rankings
+        </button>
+        <button
+          onClick={handleBackToHome}
+          style={{ cursor: 'pointer', padding: '4px 10px', background: '#333', color: '#fff', border: '1px solid #555', borderRadius: 4 }}
+        >
+          Home
         </button>
       </div>
 
@@ -59,7 +86,6 @@ function App() {
             location={selectedLocation}
             onClose={handleCloseDetail}
           />
-          {/* Add Review button at bottom of detail panel */}
           <button
             onClick={handleOpenReview}
             style={{
@@ -76,7 +102,7 @@ function App() {
               fontSize: 14,
             }}
           >
-            ✏️ Write Review
+            Write Review
           </button>
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import LogoutConfirmation from './LogoutConfirmation';
 import './LaunchScreen.css';
 
 const CATEGORIES = [
@@ -56,8 +57,9 @@ const POPULAR_TAGS = [
 ];
 
 function LaunchScreen({ onExploreMap }) {
-    const { loginWithRedirect, isAuthenticated, user, logout } = useAuth0();
+    const { loginWithRedirect, isAuthenticated, user } = useAuth0();
     const [searchQuery, setSearchQuery] = useState('');
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     const handleNavigate = (filter = null, query = '') => {
         if (onExploreMap) {
@@ -102,7 +104,7 @@ function LaunchScreen({ onExploreMap }) {
                             <button className="btn-signup" onClick={() => handleNavigate()}>
                                 Open Map
                             </button>
-                            <button className="btn-login" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+                            <button className="btn-login" onClick={() => setShowLogoutModal(true)}>
                                 Log out
                             </button>
                         </div>
@@ -229,6 +231,10 @@ function LaunchScreen({ onExploreMap }) {
                     </div>
                 </section>
             </div>
+
+            {showLogoutModal && (
+                <LogoutConfirmation onCancel={() => setShowLogoutModal(false)} />
+            )}
         </div>
     );
 }

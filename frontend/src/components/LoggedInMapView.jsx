@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import MapView from './MapView';
 import Dashboard from './Dashboard';
+import LogoutConfirmation from './LogoutConfirmation';
 import { getRankings } from '../services/api';
 import './LoggedInMapView.css';
 
@@ -32,11 +33,12 @@ function NavIcon({ type, active }) {
 }
 
 function LoggedInMapView({ onBackToHome }) {
-  const { user, logout } = useAuth0();
+  const { user } = useAuth0();
   const [activeNav, setActiveNav] = useState('explore');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [nearbyPlaces, setNearbyPlaces] = useState(FALLBACK_NEARBY);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
     getRankings()
@@ -96,7 +98,7 @@ function LoggedInMapView({ onBackToHome }) {
 
         <div className="lmv-nav-spacer" />
 
-        <div className="lmv-nav-user">
+        <div className="lmv-nav-user" onClick={() => setShowLogoutModal(true)} style={{ cursor: 'pointer' }}>
           <div className="lmv-nav-avatar">
             {user?.picture ? (
               <img src={user.picture} alt="" />
@@ -491,6 +493,10 @@ function LoggedInMapView({ onBackToHome }) {
             </div>
           </aside>
         </>
+      )}
+
+      {showLogoutModal && (
+        <LogoutConfirmation onCancel={() => setShowLogoutModal(false)} />
       )}
     </div>
   );

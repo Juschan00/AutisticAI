@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/locations': 'http://localhost:3000',
+      '/discover': 'http://localhost:3000',
       '/reviews': 'http://localhost:3000',
       '/rankings': 'http://localhost:3000',
       '/profiles': 'http://localhost:3000',

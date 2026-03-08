@@ -29,19 +29,21 @@ model User {
 }
 
 model Location {
-  id            String        @id @default(uuid())
-  name          String
-  description   String?
-  category      String?
-  address       String?
-  longitude     Float
-  latitude      Float
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  googlePlaceId  String?       @unique
+  name           String
+  description    String?
+  category       String?
+  address        String?
+  imageUrl       String?
+  longitude      Float
+  latitude       Float
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   savedBy        SavedPlace[]
-  reviews       Review[]
-  sensoryScores SensoryScore?
+  reviews        Review[]
+  sensoryScores  SensoryScore?
 }
 
 model Review {

@@ -11,6 +11,7 @@ export const toGeoJSON = (locations) => {
                 id: loc.id,
                 name: loc.name,
                 category: loc.category,
+                imageUrl: loc.imageUrl ?? null,
                 noiseScore: loc.sensoryScores?.noiseScore ?? null,
                 lightingScore: loc.sensoryScores?.lightingScore ?? null,
                 crowdScore: loc.sensoryScores?.crowdScore ?? null,

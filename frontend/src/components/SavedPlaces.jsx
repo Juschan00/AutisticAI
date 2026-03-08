@@ -77,6 +77,7 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
       category: loc.category || '',
       address: loc.address || '',
       description: loc.description || '',
+      imageUrl: loc.imageUrl || null,
       latitude: loc.latitude,
       longitude: loc.longitude,
       comfort: scores.comfortScore ?? 0,
@@ -209,9 +210,13 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
           sorted.map((place) => (
             <div key={place.id} className="sp-place-card">
               <div className="sp-place-image">
-                <div className="sp-place-image-placeholder">
-                  <span>{place.name.charAt(0)}</span>
-                </div>
+                {place.imageUrl ? (
+                  <img src={place.imageUrl} alt={place.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit' }} />
+                ) : (
+                  <div className="sp-place-image-placeholder">
+                    <span>{place.name.charAt(0)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="sp-place-body">
@@ -326,8 +331,8 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
         <div className="spd-scroll">
           {/* Hero image */}
           <div className="spd-hero-image">
-            {reviews.find((r) => r.imageUrl)?.imageUrl ? (
-              <img src={reviews.find((r) => r.imageUrl).imageUrl} alt={place.name} />
+            {(place.imageUrl || detail?.imageUrl || reviews.find((r) => r.imageUrl)?.imageUrl) ? (
+              <img src={place.imageUrl || detail?.imageUrl || reviews.find((r) => r.imageUrl).imageUrl} alt={place.name} />
             ) : (
               <div className="spd-hero-gradient">
                 <span>{place.name}</span>

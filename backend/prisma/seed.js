@@ -1,7 +1,12 @@
+import "dotenv/config";
 import prisma from "../src/lib/prisma.js";
-import { model } from "../src/lib/gemini.js";
-
-const GOOGLE_PLACES_KEY = "AIzaSyDQPEAaRMgkTVMJeSeKrB_EZHPO79ZE34w";
+import {
+    searchGooglePlaces,
+    getGooglePlaceDetails,
+    uploadPlacePhoto,
+    classifyCategory,
+    analyzeWithGemini,
+} from "../src/lib/placesService.js";
 
 const SEARCH_QUERIES = [
     "libraries in Waterloo Ontario",
@@ -15,94 +20,6 @@ const SEARCH_QUERIES = [
     "quiet places in Waterloo Ontario",
     "nature trails in Kitchener Waterloo Ontario",
 ];
-
-const CATEGORY_MAP = {
-    library: "library",
-    book_store: "bookstore",
-    park: "park",
-    cafe: "cafe",
-    restaurant: "restaurant",
-    museum: "museum",
-    shopping_mall: "retail",
-    store: "retail",
-    tourist_attraction: "attraction",
-    art_gallery: "museum",
-    church: "worship",
-    gym: "fitness",
-    spa: "wellness",
-    movie_theater: "entertainment",
-    bar: "bar",
-    night_club: "nightlife",
-    school: "education",
-    university: "education",
-};
-
-function classifyCategory(types) {
-    for (const type of types || []) {
-        if (CATEGORY_MAP[type]) return CATEGORY_MAP[type];
-    }
-    return "other";
-}
-
-async function searchPlaces(query) {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_PLACES_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.results || [];
-}
-
-async function getPlaceDetails(placeId) {
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,geometry,types,reviews,rating,editorial_summary&key=${GOOGLE_PLACES_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return data.result || null;
-}
-
-async function analyzePlaceWithGemini(name, category, reviews) {
-    const reviewTexts = reviews.map((r, i) => `Review ${i + 1} (${r.rating}/5 stars): ${r.text}`).join("\n\n");
-
-    const prompt = `You are a sensory environment analyst helping people with autism and sensory sensitivities evaluate public spaces.
-
-Given these Google reviews for "${name}" (${category}):
-
-${reviewTexts}
-
-Analyze the sensory environment and return ONLY a valid JSON object with this exact structure (no markdown, no backticks, no explanation):
-{
-  "noiseScore": <number 1.0-5.0, where 1=very quiet, 5=very loud>,
-  "lightingScore": <number 1.0-5.0, where 1=very dim/soft, 5=very bright/harsh>,
-  "crowdScore": <number 1.0-5.0, where 1=empty/sparse, 5=very crowded>,
-  "comfortScore": <number 1.0-5.0, overall sensory comfort for sensitive individuals, 5=most comfortable>,
-  "reviews": [
-    {
-      "bodyText": "<a realistic sensory-focused review from perspective of a sensory-sensitive visitor, 2-3 sentences>",
-      "rating": <number 1-10, overall comfort rating>,
-      "noiseLevel": <number 1-10>,
-      "lightingLevel": <number 1-10>,
-      "crowdLevel": <number 1-10>
-    },
-    {
-      "bodyText": "<second unique sensory-focused review>",
-      "rating": <number 1-10>,
-      "noiseLevel": <number 1-10>,
-      "lightingLevel": <number 1-10>,
-      "crowdLevel": <number 1-10>
-    },
-    {
-      "bodyText": "<third unique sensory-focused review>",
-      "rating": <number 1-10>,
-      "noiseLevel": <number 1-10>,
-      "lightingLevel": <number 1-10>,
-      "crowdLevel": <number 1-10>
-    }
-  ]
-}`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
-    const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-    return JSON.parse(cleaned);
-}
 
 // ─── Main Seed Flow ──────────────────────────────────────────
 
@@ -123,7 +40,7 @@ const allPlaces = [];
 
 for (const query of SEARCH_QUERIES) {
     console.log(`  Searching: "${query}"`);
-    const results = await searchPlaces(query);
+    const results = await searchGooglePlaces(query);
 
     for (const place of results) {
         if (seenPlaceIds.has(place.place_id)) continue;
@@ -143,7 +60,7 @@ const placesWithDetails = [];
 
 for (const place of selectedPlaces) {
     try {
-        const details = await getPlaceDetails(place.place_id);
+        const details = await getGooglePlaceDetails(place.place_id);
         if (!details) continue;
 
         const reviews = details.reviews || [];
@@ -153,6 +70,7 @@ for (const place of selectedPlaces) {
         }
 
         placesWithDetails.push({
+            googlePlaceId: place.place_id,
             name: details.name,
             address: details.formatted_address,
             latitude: details.geometry.location.lat,
@@ -161,6 +79,7 @@ for (const place of selectedPlaces) {
             description: details.editorial_summary?.overview || null,
             googleRating: details.rating,
             reviews: reviews.slice(0, 5),
+            photoReference: details.photos?.[0]?.photo_reference || null,
         });
 
         console.log(`  ✅ ${details.name} (${reviews.length} reviews)`);
@@ -176,11 +95,11 @@ console.log(`\n  Got details for ${placesWithDetails.length} places.\n`);
 console.log("🤖 Analyzing with Gemini and inserting into database...\n");
 
 const testUser = await prisma.user.upsert({
-    where: { auth0Id: "test|seed-user" },
+    where: { auth0Id: "system|sensorysafe-bot" },
     update: {},
     create: {
-        auth0Id: "test|seed-user",
-        email: "seed@sensorysafe.com",
+        auth0Id: "system|sensorysafe-bot",
+        email: "bot@sensorysafe.com",
         username: "SensorySafe Bot",
     },
 });
@@ -191,16 +110,25 @@ for (const place of placesWithDetails) {
     try {
         console.log(`  🔄 Analyzing: ${place.name}...`);
 
-        const analysis = await analyzePlaceWithGemini(place.name, place.category, place.reviews);
+        const analysis = await analyzeWithGemini(place.name, place.category, place.reviews);
+
+        let imageUrl = null;
+        if (place.photoReference) {
+            console.log(`  📸 Uploading photo for ${place.name}...`);
+            imageUrl = await uploadPlacePhoto(place.photoReference);
+            await new Promise((r) => setTimeout(r, 500));
+        }
 
         const location = await prisma.location.create({
             data: {
+                googlePlaceId: place.googlePlaceId,
                 name: place.name,
                 description: place.description,
                 category: place.category,
                 address: place.address,
                 latitude: place.latitude,
                 longitude: place.longitude,
+                imageUrl,
             },
         });
 
@@ -230,7 +158,7 @@ for (const place of placesWithDetails) {
         }
 
         successCount++;
-        console.log(`  ✅ ${place.name} — scores: noise=${analysis.noiseScore}, light=${analysis.lightingScore}, crowd=${analysis.crowdScore}, comfort=${analysis.comfortScore}`);
+        console.log(`  ✅ ${place.name} — scores: noise=${analysis.noiseScore}, light=${analysis.lightingScore}, crowd=${analysis.crowdScore}, comfort=${analysis.comfortScore}${imageUrl ? ' 📷' : ' (no photo)'}`);
 
         await new Promise((r) => setTimeout(r, 1000));
     } catch (err) {

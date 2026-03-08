@@ -43,7 +43,7 @@ function getComfortColor(score) {
     return [r, g, b, 220];
 }
 
-function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, flyToLocation }) {
+function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, heatmapData, flyToLocation }) {
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
     const overlayRef = useRef(null);
@@ -62,13 +62,26 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
         }
     }, [heatmapEnabled]);
 
+    const normalizedHeatmap = useMemo(() => {
+        if (!heatmapData?.length) return [];
+        return heatmapData.map((d) => ({
+            position: [d.longitude, d.latitude],
+            id: d.locationId,
+            name: d.name,
+            category: d.category,
+            comfort_score: d.comfortScore,
+            noise_score: d.noiseScore,
+            lighting_score: d.lightingScore,
+            crowd_score: d.crowdScore,
+            review_count: d.reviewCount,
+        }));
+    }, [heatmapData]);
+
     const baseData = useMemo(() => {
-        if (searchResultsGeoJSON != null) {
-            const parsed = parseGeoJSON(searchResultsGeoJSON);
-            return parsed;
-        }
+        if (searchResultsGeoJSON != null) return parseGeoJSON(searchResultsGeoJSON);
+        if (normalizedHeatmap.length > 0) return normalizedHeatmap;
         return locationData;
-    }, [locationData, searchResultsGeoJSON]);
+    }, [locationData, searchResultsGeoJSON, normalizedHeatmap]);
 
     const filteredData = useMemo(() => {
         let data = baseData;
@@ -176,16 +189,16 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
                     data: filteredData,
                     getPosition: (d) => d.position,
                     getWeight: (d) => d.comfort_score || 2.5,
-                    radiusPixels: 80,
-                    intensity: 1.2,
-                    threshold: 0.03,
+                    radiusPixels: 100,
+                    intensity: 1.8,
+                    threshold: 0.02,
                     colorRange: [
-                        [255, 77, 77, 120],
-                        [255, 165, 0, 140],
-                        [255, 230, 77, 140],
-                        [144, 238, 144, 160],
-                        [34, 197, 94, 180],
-                        [16, 150, 72, 200],
+                        [255, 77, 77, 180],
+                        [255, 165, 0, 200],
+                        [255, 230, 77, 200],
+                        [144, 238, 144, 220],
+                        [34, 197, 94, 240],
+                        [16, 150, 72, 255],
                     ],
                     pickable: false,
                 })

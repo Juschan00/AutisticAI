@@ -8,7 +8,7 @@ import SavedPlaces from './SavedPlaces';
 import SensoryProfile from './SensoryProfile';
 import Settings from './Settings';
 import LogoutConfirmation from './LogoutConfirmation';
-import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
+import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
 import './LoggedInMapView.css';
 
 const NAV_ITEMS = [
@@ -165,7 +165,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   useEffect(() => {
     if (!initialSearchQuery?.trim()) return;
     setSearchLoading(true);
-    searchLocations(initialSearchQuery.trim())
+    discoverLocations(initialSearchQuery.trim(), userCoords?.lat, userCoords?.lng)
       .then((res) => setSearchResults(res.data))
       .catch(() => setSearchResults({ features: [] }))
       .finally(() => setSearchLoading(false));
@@ -225,7 +225,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     }
     setSearchLoading(true);
     try {
-      const res = await searchLocations(searchQuery.trim());
+      const res = await discoverLocations(searchQuery.trim(), userCoords?.lat, userCoords?.lng);
       setSearchResults(res.data);
     } catch {
       setSearchResults({ features: [] });
@@ -473,7 +473,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             setSearchQuery(query);
             setActiveNav('explore');
             setSearchLoading(true);
-            searchLocations(query.trim())
+            discoverLocations(query.trim(), userCoords?.lat, userCoords?.lng)
               .then((res) => setSearchResults(res.data))
               .catch(() => setSearchResults({ features: [] }))
               .finally(() => setSearchLoading(false));
@@ -543,6 +543,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   selectedLocationId={selectedLocation?.id}
                   selectedLocation={selectedLocation}
                   flyToLocation={flyToLocation}
+                  heatmapData={heatmapData}
                 />
               </div>
 
@@ -641,8 +642,8 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             {/* Location Card */}
             <div className="lmv-detail-card">
               <div className="lmv-loc-photo">
-                {locationDetail?.reviews?.find((r) => r.imageUrl)?.imageUrl ? (
-                  <img src={locationDetail.reviews.find((r) => r.imageUrl).imageUrl} alt={locName} />
+                {(locationDetail?.imageUrl || locationDetail?.reviews?.find((r) => r.imageUrl)?.imageUrl) ? (
+                  <img src={locationDetail.imageUrl || locationDetail.reviews.find((r) => r.imageUrl).imageUrl} alt={locName} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8f0fe, #d4e8e6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>
                     {locName}

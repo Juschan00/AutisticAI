@@ -230,6 +230,7 @@ function NonLoginMapView({ onExploreMap, initialSearchQuery, initialFilter }) {
           filter={mapFilter}
           searchResultsGeoJSON={searchResults}
           heatmapEnabled={heatmapOn}
+          heatmapData={heatmapData}
         />
       </div>
 

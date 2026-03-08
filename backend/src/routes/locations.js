@@ -31,18 +31,22 @@ router.get("/heatmap", async (req, res) => {
             include: {
                 location: {
                     select: {
+                        id: true,
                         latitude: true,
                         longitude: true,
-                        name: true
+                        name: true,
+                        category: true,
                     }
                 }
             }
         })
 
         const heatMapData = scores.map((s) => ({
+            locationId: s.locationId,
             longitude: s.location.longitude,
             latitude: s.location.latitude,
             name: s.location.name,
+            category: s.location.category,
             noiseScore: s.noiseScore,
             lightingScore: s.lightingScore,
             crowdScore: s.crowdScore,

@@ -74,6 +74,10 @@ export const searchLocations = (query) => {
     return api.get('/locations/search', { params: { q: query } });
 };
 
+export const discoverLocations = (query, lat, lng) => {
+    return api.get('/discover', { params: { q: query, lat, lng }, timeout: 20000 });
+};
+
 // ─── Reviews ────────────────────────────────────────────────
 export const submitReview = (reviewData) => {
     return api.post('/reviews', reviewData);

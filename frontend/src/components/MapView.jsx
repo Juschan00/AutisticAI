@@ -273,35 +273,36 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
 
             <div style={{
                 position: 'absolute',
-                top: 16,
+                top: 72,
                 right: 60,
                 zIndex: 10,
+                minWidth: 180,
                 background: 'rgba(255,255,255,0.92)',
                 backdropFilter: 'blur(8px)',
-                padding: '12px 16px',
+                padding: '16px 20px',
                 borderRadius: 12,
-                fontSize: 13,
+                fontSize: 14,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                 border: '1px solid rgba(0,0,0,0.06)',
                 pointerEvents: 'auto',
             }}>
-                <div style={{ fontWeight: 600, marginBottom: 8, color: '#0f1720' }}>Layers</div>
-                {loading && <div style={{ color: '#94a3b8', marginBottom: 4 }}>Loading...</div>}
+                <div style={{ fontWeight: 600, marginBottom: 10, color: '#0f1720', fontSize: 15 }}>Layers</div>
+                {loading && <div style={{ color: '#94a3b8', marginBottom: 6, fontSize: 13 }}>Loading...</div>}
                 {[
                     { key: 'heatmap', label: 'Comfort Heatmap' },
                     { key: 'pins', label: 'Location Pins' },
                 ].map(({ key, label }) => (
-                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 4, color: '#374151' }}>
+                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', marginBottom: 6, color: '#374151', fontSize: 14 }}>
                         <input
                             type="checkbox"
                             checked={layers[key]}
                             onChange={() => toggleLayer(key)}
-                            style={{ accentColor: '#4b8bff' }}
+                            style={{ accentColor: '#4b8bff', width: 16, height: 16 }}
                         />
                         {label}
                     </label>
                 ))}
-                <div style={{ marginTop: 8, color: '#94a3b8', fontSize: 11 }}>
+                <div style={{ marginTop: 10, color: '#94a3b8', fontSize: 12 }}>
                     {filteredData.length} locations
                     {filter && <span> · {filter}</span>}
                 </div>

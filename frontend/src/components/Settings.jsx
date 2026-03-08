@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTheme } from '../theme/ThemeContext.jsx';
 import './Settings.css';
 
 const STORAGE_KEY = 'sensorysafe_settings';
@@ -27,8 +28,14 @@ function loadSettings() {
   }
 }
 
+const THEMES = [
+  { id: 'nature', label: 'Nature', desc: 'Green / beige', color: '#5a8f6e' },
+  { id: 'calm', label: 'Calm', desc: 'Blue / teal', color: '#5b9bd5' },
+];
+
 function Settings({ user, userProfile, onLogout }) {
   const [settings, setSettings] = useState(loadSettings);
+  const { theme, setTheme, resetTheme } = useTheme();
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -36,6 +43,11 @@ function Settings({ user, userProfile, onLogout }) {
 
   const toggle = (key) => setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   const set = (key, val) => setSettings((prev) => ({ ...prev, [key]: val }));
+
+  const handleReset = () => {
+    setSettings({ ...DEFAULT_SETTINGS });
+    resetTheme();
+  };
 
   const joined = user?.updated_at
     ? new Date(user.updated_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -116,6 +128,29 @@ function Settings({ user, userProfile, onLogout }) {
           <Toggle label="Weekly email digest" sublabel="Summary of your comfort scores and new quiet spots" checked={settings.emailDigest} onChange={() => toggle('emailDigest')} />
         </section>
 
+        {/* ── Appearance Card ── */}
+        <section className="sett-card">
+          <h2>Appearance</h2>
+          <p className="sett-card-desc">Choose a color theme that feels comfortable for you.</p>
+
+          <div className="sett-theme-options">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                className={`sett-theme-btn ${theme === t.id ? 'active' : ''}`}
+                onClick={() => setTheme(t.id)}
+                aria-pressed={theme === t.id}
+                aria-label={`${t.label} theme: ${t.desc}`}
+              >
+                <span className="sett-theme-swatch" style={{ background: t.color }} aria-hidden />
+                <span className="sett-theme-label">{t.label}</span>
+                <span className="sett-theme-desc">{t.desc}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* ── Accessibility Card ── */}
         <section className="sett-card">
           <h2>Accessibility</h2>
@@ -172,7 +207,7 @@ function Settings({ user, userProfile, onLogout }) {
           <h2>Privacy</h2>
           <p className="sett-card-desc">Control how your data is used.</p>
 
-          <Toggle label="Anonymous usage data" sublabel="Help improve SensorySafe with anonymized analytics" checked={settings.shareAnonymousData} onChange={() => toggle('shareAnonymousData')} />
+          <Toggle label="Anonymous usage data" sublabel="Help improve SenseMap with anonymized analytics" checked={settings.shareAnonymousData} onChange={() => toggle('shareAnonymousData')} />
           <Toggle label="Show profile badge" sublabel="Display your sensory profile type to the community" checked={settings.showProfileBadge} onChange={() => toggle('showProfileBadge')} />
         </section>
 
@@ -193,7 +228,7 @@ function Settings({ user, userProfile, onLogout }) {
               <span className="sett-toggle-label">Reset all settings</span>
               <span className="sett-toggle-sub">Restore every preference to its default value</span>
             </div>
-            <button type="button" className="sett-btn sett-btn-reset" onClick={() => setSettings({ ...DEFAULT_SETTINGS })}>Reset</button>
+            <button type="button" className="sett-btn sett-btn-reset" onClick={handleReset}>Reset</button>
           </div>
 
           <div className="sett-action-row sett-action-danger">
@@ -207,7 +242,7 @@ function Settings({ user, userProfile, onLogout }) {
       </div>
 
       <div className="sett-footer">
-        <span>SensorySafe Map v1.0</span>
+        <span>SenseMap v1.0</span>
         <span>·</span>
         <span>All preferences are saved locally on this device</span>
       </div>

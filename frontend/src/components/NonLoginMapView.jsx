@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useTheme } from '../theme/ThemeContext.jsx';
 import MapView from './MapView';
 import { getRankings, getLocationHeatmap, getLocationById, searchLocations } from '../services/api';
 import './NonLoginMapView.css';
@@ -14,10 +16,10 @@ const QUICK_FILTERS = [
 ];
 
 const CATEGORY_CHIPS = [
-  { emoji: '📚', title: 'Quiet libraries', desc: 'Low noise spaces', filter: 'library' },
-  { emoji: '☕', title: 'Soft-light cafes', desc: 'Gentler lighting', filter: 'cafe' },
-  { emoji: '🌳', title: 'Outdoor calm', desc: 'Open spaces', filter: 'outdoor' },
-  { emoji: '🔍', title: 'Explore all', desc: 'All places', filter: null },
+  { emoji: '🤫', title: 'Quiet', desc: 'Low-noise spots', filter: 'library' },
+  { emoji: '☕', title: 'Cafes', desc: 'Gentler lighting', filter: 'cafe' },
+  { emoji: '🌳', title: 'Outdoor', desc: 'Open green areas', filter: 'outdoor' },
+  { emoji: '🔍', title: 'Explore all', desc: 'See every place', filter: null },
 ];
 
 const scoreToLabel = (s) => s < 2 ? 'Low' : s < 3.5 ? 'Medium' : 'High';
@@ -46,12 +48,15 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
   const [avgRating, setAvgRating] = useState(null);
   const [userCoords, setUserCoords] = useState(null);
   const [searchNoResults, setSearchNoResults] = useState(false);
-  const [isNavCollapsed, setIsNavCollapsed] = useState(true);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [showSigninDetail, setShowSigninDetail] = useState(false);
 
   const toggleNavCollapse = () => setIsNavCollapsed((prev) => !prev);
   const toggleSigninDetail = () => setShowSigninDetail((prev) => !prev);
   const signinPopoverRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { theme, setTheme } = useTheme();
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (!showSigninDetail) return;
@@ -238,22 +243,56 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
     return activeFilter;
   })();
 
+  const zoomTransition = prefersReducedMotion
+    ? { duration: 0.1 }
+    : { duration: 0.5, ease: [0.22, 0.61, 0.36, 1] };
+  const fadeTransition = prefersReducedMotion
+    ? { duration: 0.1 }
+    : { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] };
+
+  const mapWrapperVariants = {
+    closed: { opacity: 0, scale: 0.96 },
+    open: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        opacity: fadeTransition,
+        scale: zoomTransition,
+      },
+    },
+  };
+
+  const handleCloseClick = () => {
+    if (!onBackToHome) return;
+    setIsClosing(true);
+  };
+
   return (
-    <div className="nlm">
-      {/* Close map — top left of screen, above sidebars */}
-      {onBackToHome && (
-        <button
-          type="button"
-          className="nlm-close-map-btn"
-          onClick={onBackToHome}
-          aria-label="Close map and return to find places"
-        >
-          <svg className="nlm-close-map-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-          <span className="nlm-close-map-text">Close map</span>
-        </button>
-      )}
+    <motion.div
+      className="nlm"
+      initial="closed"
+      animate={isClosing ? 'closed' : 'open'}
+      variants={mapWrapperVariants}
+      transition={
+        isClosing
+          ? prefersReducedMotion
+            ? { duration: 0.1 }
+            : { opacity: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }, scale: { duration: 0.4, ease: [0.22, 0.61, 0.36, 1] } }
+          : undefined
+      }
+      style={{
+        position: 'fixed',
+        inset: 0,
+        overflow: 'hidden',
+        background: 'var(--theme-bg)',
+        transformOrigin: 'center center',
+      }}
+      onAnimationComplete={() => {
+        if (isClosing && onBackToHome) {
+          onBackToHome();
+        }
+      }}
+    >
       {/* Background map */}
       <div className="nlm-map-container">
         <MapView
@@ -272,15 +311,29 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
         {/* Fixed header / navigation bar */}
         <div className="nlm-sidebar-left-header">
           <div className="nlm-logo-row">
-            <div className="nlm-logo-group">
+              <div className="nlm-logo-group">
               <div className="nlm-logo-icon">
-                <span style={{ fontSize: 20, lineHeight: 1 }}>🧠</span>
+                <img src="/favicon.png" alt="" />
               </div>
               <div className="nlm-logo-text">
-                <h1>SensorySafe Map</h1>
+                <h1>SenseMap</h1>
                 <p>Explore safely and simply</p>
               </div>
             </div>
+          </div>
+          <div className="nlm-theme-switcher" role="group" aria-label="Theme">
+            {['nature', 'calm'].map((t) => (
+              <button
+                key={t}
+                type="button"
+                className={`nlm-theme-btn nlm-theme-btn--text ${theme === t ? 'active' : ''}`}
+                onClick={() => setTheme(t)}
+                aria-pressed={theme === t}
+                aria-label={`${t.charAt(0).toUpperCase() + t.slice(1)} theme`}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
           </div>
           <button
             type="button"
@@ -380,87 +433,104 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
       <aside className="nlm-sidebar-right">
         {/* Ratings Card */}
         <div className="nlm-ratings-card">
-          {!selectedLocation ? (
-            <div className="nlm-ratings-no-selection" role="status" aria-live="polite">
-              <div className="nlm-ratings-no-selection-icon" aria-hidden>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                  <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                </svg>
-              </div>
-              <span className="nlm-ratings-no-selection-label">Ratings</span>
-              <p className="nlm-ratings-no-selection-title">No location selected</p>
-              <p className="nlm-ratings-no-selection-hint">Choose a place on the map or from the list to view sensory ratings and reviews.</p>
-            </div>
-          ) : (
-            <>
-              <div className="nlm-ratings-header">
-                <div className="nlm-ratings-title">
-                  <h2>Ratings</h2>
-                  <p>{locationName}</p>
+          <AnimatePresence mode="wait">
+            {!selectedLocation ? (
+              <motion.div
+                key="no-selection"
+                className="nlm-ratings-no-selection"
+                role="status"
+                aria-live="polite"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <div className="nlm-ratings-no-selection-icon" aria-hidden>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
                 </div>
-                <div className="nlm-score-badge">
-                  <span className="score-value">{overallScore}</span>
-                  <span className="score-label">{reviewCount} reviews</span>
+                <span className="nlm-ratings-no-selection-label">Ratings</span>
+                <p className="nlm-ratings-no-selection-title">No location selected</p>
+                <p className="nlm-ratings-no-selection-hint">Choose a place on the map or from the list to view sensory ratings and reviews.</p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={selectedLocation.id || 'selection'}
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <div className="nlm-ratings-header">
+                  <div className="nlm-ratings-title">
+                    <h2>Ratings</h2>
+                    <p>{locationName}</p>
+                  </div>
+                  <div className="nlm-score-badge">
+                    <span className="score-value">{overallScore}</span>
+                    <span className="score-label">{reviewCount} reviews</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Stars */}
-              <div className="nlm-stars">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className={`nlm-star ${i <= starCount ? 'filled' : 'empty'}`}>
-                    {i <= starCount && <div className="star-overlay" />}
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 1.33L10.06 5.51L14.67 6.18L11.33 9.43L12.12 14.01L8 11.85L3.88 14.01L4.67 9.43L1.33 6.18L5.94 5.51L8 1.33Z"
-                        fill={i <= starCount ? '#F5A623' : 'none'}
-                        stroke={i <= starCount ? '#F5A623' : '#CBD5E1'}
-                        strokeWidth={i <= starCount ? '0.5' : '1'}
-                        strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                ))}
-              </div>
+                {/* Stars */}
+                <div className="nlm-stars">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className={`nlm-star ${i <= starCount ? 'filled' : 'empty'}`}>
+                      {i <= starCount && <div className="star-overlay" />}
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.33L10.06 5.51L14.67 6.18L11.33 9.43L12.12 14.01L8 11.85L3.88 14.01L4.67 9.43L1.33 6.18L5.94 5.51L8 1.33Z"
+                          fill={i <= starCount ? '#F5A623' : 'none'}
+                          stroke={i <= starCount ? '#F5A623' : '#CBD5E1'}
+                          strokeWidth={i <= starCount ? '0.5' : '1'}
+                          strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  ))}
+                </div>
 
-              {/* Rating Tags */}
-              <div className="nlm-rating-tags">
-                {ratingTags.map((tag) => (
-                  <span key={tag} className="nlm-rating-tag">{tag}</span>
-                ))}
-              </div>
+                {/* Rating Tags */}
+                <div className="nlm-rating-tags">
+                  {ratingTags.map((tag) => (
+                    <span key={tag} className="nlm-rating-tag">{tag}</span>
+                  ))}
+                </div>
 
-              {/* Score Bars */}
-              <div className="nlm-score-bars">
-                <div className="nlm-score-row">
-                  <span className="nlm-score-label">Noise</span>
-                  <div className="nlm-score-bar">
-                    <div className="nlm-score-bar-fill" style={{ width: `${(noiseScore / 5) * 100}%` }} />
+                {/* Score Bars */}
+                <div className="nlm-score-bars">
+                  <div className="nlm-score-row">
+                    <span className="nlm-score-label">Noise</span>
+                    <div className="nlm-score-bar">
+                      <div className="nlm-score-bar-fill" style={{ width: `${(noiseScore / 5) * 100}%` }} />
+                    </div>
+                    <span className="nlm-score-value">{noiseScore.toFixed(1)}</span>
                   </div>
-                  <span className="nlm-score-value">{noiseScore.toFixed(1)}</span>
-                </div>
-                <div className="nlm-score-row">
-                  <span className="nlm-score-label">Lighting</span>
-                  <div className="nlm-score-bar">
-                    <div className="nlm-score-bar-fill" style={{ width: `${(lightingScore / 5) * 100}%` }} />
+                  <div className="nlm-score-row">
+                    <span className="nlm-score-label">Lighting</span>
+                    <div className="nlm-score-bar">
+                      <div className="nlm-score-bar-fill" style={{ width: `${(lightingScore / 5) * 100}%` }} />
+                    </div>
+                    <span className="nlm-score-value">{lightingScore.toFixed(1)}</span>
                   </div>
-                  <span className="nlm-score-value">{lightingScore.toFixed(1)}</span>
-                </div>
-                <div className="nlm-score-row">
-                  <span className="nlm-score-label">Crowds</span>
-                  <div className="nlm-score-bar">
-                    <div className="nlm-score-bar-fill" style={{ width: `${(crowdScore / 5) * 100}%` }} />
+                  <div className="nlm-score-row">
+                    <span className="nlm-score-label">Crowds</span>
+                    <div className="nlm-score-bar">
+                      <div className="nlm-score-bar-fill" style={{ width: `${(crowdScore / 5) * 100}%` }} />
+                    </div>
+                    <span className="nlm-score-value">{crowdScore.toFixed(1)}</span>
                   </div>
-                  <span className="nlm-score-value">{crowdScore.toFixed(1)}</span>
-                </div>
-                <div className="nlm-score-row">
-                  <span className="nlm-score-label">Comfort</span>
-                  <div className="nlm-score-bar">
-                    <div className="nlm-score-bar-fill" style={{ width: `${(comfortScore / 5) * 100}%` }} />
+                  <div className="nlm-score-row">
+                    <span className="nlm-score-label">Comfort</span>
+                    <div className="nlm-score-bar">
+                      <div className="nlm-score-bar-fill" style={{ width: `${(comfortScore / 5) * 100}%` }} />
+                    </div>
+                    <span className="nlm-score-value">{comfortScore.toFixed(1)}</span>
                   </div>
-                  <span className="nlm-score-value">{comfortScore.toFixed(1)}</span>
                 </div>
-              </div>
-            </>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Sign In Card — compact with info popup */}
@@ -468,7 +538,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           <div className="nlm-signin-header">
             <div className="nlm-signin-icon">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.5 12.5C17.5 13.163 17.2366 13.7989 16.7678 14.2678C16.2989 14.7366 15.663 15 15 15H6.66667L2.5 17.5V5C2.5 4.33696 2.76339 3.70107 3.23223 3.23223C3.70107 2.76339 4.33696 2.5 5 2.5H15C15.663 2.5 16.2989 2.76339 16.7678 3.23223C17.2366 3.70107 17.5 4.33696 17.5 5V12.5Z" stroke="#4b8bff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17.5 12.5C17.5 13.163 17.2366 13.7989 16.7678 14.2678C16.2989 14.7366 15.663 15 15 15H6.66667L2.5 17.5V5C2.5 4.33696 2.76339 3.70107 3.23223 3.23223C3.70107 2.76339 4.33696 2.5 5 2.5H15C15.663 2.5 16.2989 2.76339 16.7678 3.23223C17.2366 3.70107 17.5 4.33696 17.5 5V12.5Z" stroke="var(--theme-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <div className="nlm-signin-text">
@@ -489,20 +559,31 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
             </button>
           </div>
 
-          {showSigninDetail && (
-            <div className="nlm-signin-popup" role="dialog" aria-label="Sign in benefits">
-              <div className="nlm-signin-popup-inner">
-                <p className="nlm-signin-desc">Read community notes, sensory tips, and recent experiences for this place.</p>
-                <ul className="nlm-signin-benefits">
-                  <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />See detailed sensory comments</li>
-                  <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />Save trusted places and routines</li>
-                  <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />Compare your profile to each location</li>
-                </ul>
-                <p className="nlm-signin-note">Comments stay organized and easy to scan so you can decide quickly without overload.</p>
-              </div>
-              <div className="nlm-signin-popup-arrow" aria-hidden />
-            </div>
-          )}
+          <AnimatePresence>
+            {showSigninDetail && (
+              <motion.div
+                key="signin-popup"
+                className="nlm-signin-popup"
+                role="dialog"
+                aria-label="Sign in benefits"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 6, scale: 0.98 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 4, scale: 0.98 }}
+                transition={prefersReducedMotion ? { duration: 0.1 } : { duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <div className="nlm-signin-popup-inner">
+                  <p className="nlm-signin-desc">Read community notes, sensory tips, and recent experiences for this place.</p>
+                  <ul className="nlm-signin-benefits">
+                    <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />See detailed sensory comments</li>
+                    <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />Save trusted places and routines</li>
+                    <li className="nlm-benefit-item"><span className="nlm-benefit-dot" />Compare your profile to each location</li>
+                  </ul>
+                  <p className="nlm-signin-note">Comments stay organized and easy to scan so you can decide quickly without overload.</p>
+                </div>
+                <div className="nlm-signin-popup-arrow" aria-hidden />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button className="nlm-signin-btn" onClick={handleSignIn}>
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -515,25 +596,20 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
         </div>
       </aside>
 
-      {/* Top Center: Heatmap Toggle */}
-      <div className="nlm-heatmap-toggle">
-        <div className="nlm-heatmap-info">
-          <h4>Sensory heatmap</h4>
-          <p>Show calm, moderate, and overwhel…</p>
-        </div>
-        <div className="nlm-toggle-group">
-          <button
-            className={`nlm-toggle-switch ${heatmapOn ? 'on' : 'off'}`}
-            onClick={() => setHeatmapOn(!heatmapOn)}
-            aria-label="Toggle heatmap"
-          >
-            <div className="nlm-toggle-knob" />
-          </button>
-          <span className={`nlm-toggle-label ${heatmapOn ? '' : 'off'}`}>
-            {heatmapOn ? 'On' : 'Off'}
-          </span>
-        </div>
-      </div>
+      {/* Top Center: Close map */}
+      {onBackToHome && (
+        <button
+          type="button"
+          className="nlm-close-map-btn"
+          onClick={handleCloseClick}
+          aria-label="Close map and return to find places"
+        >
+          <svg className="nlm-close-map-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+          <span className="nlm-close-map-text">Close map</span>
+        </button>
+      )}
 
       {/* Bottom: Search Bar (with integrated category chips) */}
       <div className="nlm-bottom-search">
@@ -567,10 +643,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                 onClick={() => handleCategoryClick(chip.filter)}
               >
                 <span className="nlm-cat-chip-emoji">{chip.emoji}</span>
-                <div className="nlm-cat-chip-text">
-                  <span className="nlm-cat-chip-title">{chip.title}</span>
-                  <span className="nlm-cat-chip-desc">{chip.desc}</span>
-                </div>
+                <span className="nlm-cat-chip-title">{chip.title}</span>
               </button>
             ))}
           </div>
@@ -581,7 +654,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           </p>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

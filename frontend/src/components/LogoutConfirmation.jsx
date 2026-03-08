@@ -27,9 +27,9 @@ function LogoutConfirmation({ onCancel }) {
         {/* Logo */}
         <div className="logout-logo">
           <div className="logout-logo-icon">
-            <img src="/assets/icons/logo.svg" alt="" />
+            <img src="/favicon.png" alt="" />
           </div>
-          <span className="logout-logo-text">SensorySafe Map</span>
+          <span className="logout-logo-text">SenseMap</span>
         </div>
 
         {/* Logout icon */}

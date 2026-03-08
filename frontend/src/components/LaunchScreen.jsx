@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTheme } from '../theme/ThemeContext.jsx';
 import LogoutConfirmation from './LogoutConfirmation';
 import './LaunchScreen.css';
 
@@ -62,18 +63,26 @@ const categoryContainerVariants = {
     visible: (reducedMotion) => ({
         opacity: 1,
         transition: {
-            staggerChildren: reducedMotion ? 0 : 0.06,
-            delayChildren: reducedMotion ? 0 : 0.1,
+            staggerChildren: reducedMotion ? 0 : 0.1,
+            delayChildren: reducedMotion ? 0 : 0.25,
         },
     }),
 };
 
 const categoryCardVariants = (reducedMotion) => ({
-    hidden: { opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 12 },
+    hidden: {
+        opacity: reducedMotion ? 1 : 0,
+        y: reducedMotion ? 0 : 24,
+        scale: reducedMotion ? 1 : 0.96,
+    },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { duration: reducedMotion ? 0 : 0.35, ease: [0.25, 0.46, 0.45, 0.94] },
+        scale: 1,
+        transition: {
+            duration: reducedMotion ? 0 : 0.5,
+            ease: [0.22, 0.61, 0.36, 1],
+        },
     },
 });
 
@@ -82,6 +91,7 @@ function LaunchScreen({ onExploreMap }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const prefersReducedMotion = useReducedMotion();
+    const { theme, setTheme } = useTheme();
 
     const handleNavigate = (filter = null, query = '') => {
         if (onExploreMap) {
@@ -103,12 +113,27 @@ function LaunchScreen({ onExploreMap }) {
             <header className="launch-header">
                 <div className="launch-logo">
                     <div className="launch-logo-icon">
-                        <span style={{ fontSize: 22, lineHeight: 1 }}>🧠</span>
+                        <img src="/favicon.png" alt="" />
                     </div>
                     <div className="launch-logo-text">
-                        <h1>SensorySafe Map</h1>
+                        <h1>SenseMap</h1>
                         <p>Explore safely and simply</p>
                     </div>
+                </div>
+                <div className="launch-theme-switcher" role="group" aria-label="Theme">
+                  {['nature', 'calm'].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`launch-theme-btn launch-theme-btn--text ${theme === t ? 'active' : ''}`}
+                      onClick={() => setTheme(t)}
+                      aria-pressed={theme === t}
+                      aria-label={`${t.charAt(0).toUpperCase() + t.slice(1)} theme`}
+                      title={t === 'calm' ? 'Calm (blue/teal)' : 'Nature (green/beige)'}
+                    >
+                      {t.charAt(0).toUpperCase() + t.slice(1)}
+                    </button>
+                  ))}
                 </div>
                 <div className="launch-auth">
                     {!isAuthenticated ? (
@@ -136,19 +161,42 @@ function LaunchScreen({ onExploreMap }) {
 
             <div className="launch-bg">
                 <section className="launch-hero">
-                    <div className="launch-badge">
+                    <motion.div
+                        className="launch-badge"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={prefersReducedMotion ? undefined : { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
                         ✨ A calmer way to explore
-                    </div>
+                    </motion.div>
 
-                    <h2 className="launch-heading">
+                    <motion.h2
+                        className="launch-heading"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={prefersReducedMotion ? undefined : { duration: 0.45, delay: 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
                         Find places that feel right for you.
-                    </h2>
+                    </motion.h2>
 
-                    <p className="launch-subheading">
+                    <motion.p
+                        className="launch-subheading"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                        transition={prefersReducedMotion ? undefined : { duration: 0.45, delay: 0.12, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
                         Discover public spaces with sensory comfort insights before you go.
-                    </p>
+                    </motion.p>
 
-                    <div className="launch-map-card" onClick={() => handleNavigate()} role="button" tabIndex={0}>
+                    <motion.div
+                        className="launch-map-card"
+                        onClick={() => handleNavigate()}
+                        role="button"
+                        tabIndex={0}
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
+                        animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+                        transition={prefersReducedMotion ? undefined : { duration: 0.5, delay: 0.2, ease: [0.22, 0.55, 0.34, 0.99] }}
+                    >
                         <div className="launch-map-preview">
                             <img className="map-bg" src="/assets/images/map-preview.jpg" alt="Sensory map preview" />
                             <div className="map-overlay" />
@@ -188,7 +236,7 @@ function LaunchScreen({ onExploreMap }) {
                                 </button>
                             </form>
                         </div>
-                    </div>
+                    </motion.div>
 
                     <div className="launch-popular">
                         <span className="popular-label">Popular:</span>
@@ -205,20 +253,26 @@ function LaunchScreen({ onExploreMap }) {
                     </div>
                 </section>
 
-                <section className="launch-categories" aria-label="Sensory-friendly categories">
+                <motion.section
+                    className="launch-categories"
+                    aria-label="Sensory-friendly categories"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
+                >
                     <motion.h2
                         className="cat-heading"
-                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 12, scale: prefersReducedMotion ? 1 : 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.55, ease: [0.22, 0.61, 0.36, 1] }}
                     >
                         Top Sensory-Friendly Categories
                     </motion.h2>
                     <motion.p
                         className="cat-subtitle"
-                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 6 }}
+                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.5, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.22, 0.61, 0.36, 1] }}
                     >
                         Explore highly-rated spaces tailored for comfort.
                     </motion.p>
@@ -236,12 +290,12 @@ function LaunchScreen({ onExploreMap }) {
                                 className={`cat-card${cat.highlight ? ' cat-card--highlight' : ''}`}
                                 variants={categoryCardVariants(!!prefersReducedMotion)}
                                 whileHover={prefersReducedMotion ? undefined : {
-                                    y: -4,
-                                    transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] },
+                                    y: -6,
+                                    transition: { duration: 0.3, ease: [0.22, 0.61, 0.36, 1] },
                                 }}
                                 whileTap={prefersReducedMotion ? undefined : {
                                     scale: 0.98,
-                                    transition: { duration: 0.15 },
+                                    transition: { duration: 0.2, ease: [0.22, 0.61, 0.36, 1] },
                                 }}
                                 onClick={() => handleNavigate(cat.filter)}
                                 role="button"
@@ -266,7 +320,7 @@ function LaunchScreen({ onExploreMap }) {
                             </motion.div>
                         ))}
                     </motion.div>
-                </section>
+                </motion.section>
             </div>
 
             {showLogoutModal && (

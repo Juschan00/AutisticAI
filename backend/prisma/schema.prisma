@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model User {
+  id             String          @id @default(uuid())
+  auth0Id        String          @unique
+  email          String          @unique
+  username       String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  savedPlaces    SavedPlace[]
+  reviews        Review[]
+  sensoryProfile SensoryProfile?
+}
+
+model Location {
+  id            String        @id @default(uuid())
+  name          String
+  description   String?
+  category      String?
+  address       String?
+  longitude     Float
+  latitude      Float
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  savedBy        SavedPlace[]
+  reviews       Review[]
+  sensoryScores SensoryScore?
+}
+
+model Review {
+  id              String    @id @default(uuid())
+  userId          String
+  locationId      String
+  bodyText        String
+  rating          Int
+  visitedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  imageUrl        String?
+
+  noiseLevel      Int?
+  lightingLevel   Int?
+  crowdLevel      Int?
+
+  aiNoiseScore    Float?
+  aiLightingScore Float?
+  aiCrowdScore    Float?
+  aiSentiment     String?
+  aiTags          String[]
+
+  user            User      @relation(fields: [userId], references: [id])
+  location        Location  @relation(fields: [locationId], references: [id])
+}
+
+model SensoryScore {
+  id            String   @id @default(uuid())
+  locationId    String   @unique
+  noiseScore    Float
+  lightingScore Float
+  crowdScore    Float
+  comfortScore  Float
+  reviewCount   Int      @default(0)
+  updatedAt     DateTime @updatedAt
+
+  location      Location @relation(fields: [locationId], references: [id])
+}
+
+model SensoryProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  noiseTolerance     Int
+  lightingTolerance  Int
+  crowdTolerance     Int
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id])
+}
+
+model SavedPlace {
+  id         String   @id @default(uuid())
+  userId     String
+  locationId String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@unique([userId, locationId])
+}

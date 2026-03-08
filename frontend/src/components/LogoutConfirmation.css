@@ -2,7 +2,7 @@
 .logout-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 32, 0.4);
+  background: var(--theme-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -19,11 +19,11 @@
 .logout-modal {
   width: 440px;
   max-width: calc(100vw - 40px);
-  background: #fff;
+  background: var(--theme-surface);
   border-radius: 16px;
   box-shadow:
-    0px 24px 48px rgba(15, 23, 32, 0.12),
-    0px 4px 12px rgba(15, 23, 32, 0.06);
+    0px 24px 48px var(--theme-shadow-strong),
+    0px 4px 12px var(--theme-shadow);
   padding: 36px 32px 28px;
   display: flex;
   flex-direction: column;
@@ -49,22 +49,23 @@
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4b8bff, #6ad6c8);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .logout-logo-icon img {
-  width: 18px;
-  height: 18px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .logout-logo-text {
   font-size: 16px;
   font-weight: 600;
-  color: #0f1720;
+  color: var(--theme-text);
   letter-spacing: -0.16px;
 }
 
@@ -73,7 +74,7 @@
   width: 56px;
   height: 56px;
   border-radius: 16px;
-  background: #ebf4ff;
+  background: var(--theme-badge-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -89,7 +90,7 @@
 .logout-title {
   font-size: 22px;
   font-weight: 700;
-  color: #0f1720;
+  color: var(--theme-text);
   letter-spacing: -0.44px;
   margin: 0 0 10px;
 }
@@ -97,7 +98,7 @@
 .logout-desc {
   font-size: 14px;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--theme-text-muted);
   line-height: 22px;
   margin: 0 0 20px;
   max-width: 320px;
@@ -109,7 +110,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: #f6f9fb;
+  background: var(--theme-surface-soft);
   border-radius: 10px;
   margin-bottom: 24px;
   width: 100%;
@@ -121,7 +122,7 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #ebf4ff;
+  background: var(--theme-badge-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,7 +137,7 @@
 .logout-info-text {
   font-size: 13px;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--theme-text-muted);
   line-height: 19.5px;
 }
 
@@ -151,25 +152,25 @@
   flex: 1;
   height: 48px;
   border-radius: 12px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border);
   font-size: 15px;
   font-weight: 600;
-  color: #0f1720;
+  color: var(--theme-text);
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   transition: background 0.15s;
 }
 
 .logout-btn-cancel:hover {
-  background: #f6f9fb;
+  background: var(--theme-surface-soft);
 }
 
 .logout-btn-confirm {
   flex: 1;
   height: 48px;
   border-radius: 12px;
-  background: #4b8bff;
+  background: var(--theme-accent);
   border: none;
   font-size: 15px;
   font-weight: 600;
@@ -180,12 +181,12 @@
 }
 
 .logout-btn-confirm:hover {
-  background: #3a7af0;
+  background: var(--theme-accent-hover);
 }
 
 /* Focus */
 .logout-btn-cancel:focus-visible,
 .logout-btn-confirm:focus-visible {
-  outline: 2px solid #4b8bff;
+  outline: 2px solid var(--theme-focus);
   outline-offset: 2px;
 }

@@ -1,0 +1,104 @@
+/* Global theme tokens for SenseMap — accessible, muted colors for comfort */
+
+:root {
+  /* Fallbacks (Calm as base) */
+  --theme-bg: #f0f4f8;
+  --theme-surface: #fafcfd;
+  --theme-surface-soft: #f4f8fb;
+  --theme-elevated: #fafcfd;
+  --theme-border: rgba(30, 58, 90, 0.1);
+  --theme-border-subtle: rgba(100, 130, 160, 0.2);
+
+  --theme-text: #1e293b;
+  --theme-text-muted: #64748b;
+  --theme-text-soft: #94a3b8;
+
+  --theme-accent: #5b9bd5;
+  --theme-accent-hover: #4a8ac4;
+  --theme-accent-soft: #6ad6c8;
+  --theme-focus: #5b9bd5;
+
+  --theme-badge-bg: rgba(91, 155, 213, 0.14);
+  --theme-badge-border: rgba(91, 155, 213, 0.25);
+
+  --theme-card-soft: #f4f8fc;
+  --theme-tag-soft: #e8f0f8;
+  --theme-tag-strong: #d4eae8;
+
+  --theme-success-bg: #d6f5e1;
+  --theme-success-text: #05360d;
+  --theme-warning-bg: #ffedd5;
+  --theme-warning-text: #4a2a00;
+  --theme-overlay: rgba(15, 23, 32, 0.4);
+  --theme-shadow: rgba(15, 23, 32, 0.08);
+  --theme-shadow-strong: rgba(15, 23, 32, 0.12);
+}
+
+/* Calm — soft blue / teal, gentle and restful */
+html[data-theme='calm'] {
+  --theme-bg: #f0f4f8;
+  --theme-surface: #fafcfd;
+  --theme-surface-soft: #f4f8fb;
+  --theme-elevated: #fafcfd;
+  --theme-border: rgba(30, 58, 90, 0.1);
+  --theme-border-subtle: rgba(100, 130, 160, 0.2);
+
+  --theme-text: #1e293b;
+  --theme-text-muted: #64748b;
+  --theme-text-soft: #94a3b8;
+
+  --theme-accent: #5b9bd5;
+  --theme-accent-hover: #4a8ac4;
+  --theme-accent-soft: #6ad6c8;
+  --theme-focus: #5b9bd5;
+
+  --theme-badge-bg: rgba(91, 155, 213, 0.14);
+  --theme-badge-border: rgba(91, 155, 213, 0.25);
+
+  --theme-card-soft: #f4f8fc;
+  --theme-tag-soft: #e8f0f8;
+  --theme-tag-strong: #d4eae8;
+
+  --theme-success-bg: #d6f5e1;
+  --theme-success-text: #05360d;
+  --theme-warning-bg: #ffedd5;
+  --theme-warning-text: #4a2a00;
+  --theme-overlay: rgba(15, 23, 32, 0.4);
+  --theme-shadow: rgba(15, 23, 32, 0.08);
+  --theme-shadow-strong: rgba(15, 23, 32, 0.12);
+}
+
+/* Nature — warm beige / sage green, grounding */
+html[data-theme='nature'] {
+  --theme-bg: #f5f2eb;
+  --theme-surface: #faf8f3;
+  --theme-surface-soft: #f8f5ef;
+  --theme-elevated: #faf8f3;
+  --theme-border: rgba(87, 83, 78, 0.14);
+  --theme-border-subtle: rgba(120, 110, 95, 0.25);
+
+  --theme-text: #2d2a26;
+  --theme-text-muted: #6b6560;
+  --theme-text-soft: #8c8680;
+
+  --theme-accent: #5a8f6e;
+  --theme-accent-hover: #4a7d5e;
+  --theme-accent-soft: #7ab88d;
+  --theme-focus: #5a8f6e;
+
+  --theme-badge-bg: rgba(90, 143, 110, 0.14);
+  --theme-badge-border: rgba(90, 143, 110, 0.28);
+
+  --theme-card-soft: #f8f5ed;
+  --theme-tag-soft: #e8efe6;
+  --theme-tag-strong: #d4e5d8;
+
+  --theme-success-bg: #d4e5d8;
+  --theme-success-text: #1e3d2a;
+  --theme-warning-bg: #f5e6d3;
+  --theme-warning-text: #5c4a2e;
+  --theme-overlay: rgba(45, 42, 38, 0.45);
+  --theme-shadow: rgba(45, 42, 38, 0.08);
+  --theme-shadow-strong: rgba(45, 42, 38, 0.14);
+}
+

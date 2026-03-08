@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../theme/ThemeContext.jsx';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import MapView from './MapView';
 import Dashboard from './Dashboard';
@@ -31,7 +32,7 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 function NavIcon({ type, active }) {
-  const color = active ? '#0849d6' : '#0b1720';
+  const color = active ? 'var(--theme-accent)' : 'var(--theme-text)';
   const icons = {
     map: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 4.5L6.5 1.5L11.5 4.5L16.5 1.5V13.5L11.5 16.5L6.5 13.5L1.5 16.5V4.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M6.5 1.5V13.5" stroke={color} strokeWidth="1.5"/><path d="M11.5 4.5V16.5" stroke={color} strokeWidth="1.5"/></svg>,
     grid: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="10.5" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="2.25" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="10.5" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/></svg>,
@@ -49,6 +50,7 @@ function SkeletonBlock({ width = '100%', height = 16 }) {
 function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const { user, getAccessTokenSilently } = useAuth0();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const [activeNav, setActiveNav] = useState('explore');
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -388,10 +390,10 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
       <nav className="lmv-nav">
         <div className="lmv-nav-logo">
           <div className="lmv-nav-logo-icon">
-            <span style={{ fontSize: 20, lineHeight: 1 }}>🧠</span>
+            <img src="/favicon.png" alt="" />
           </div>
           <div className="lmv-nav-logo-text">
-            <h1>SensorySafe Map</h1>
+            <h1>SenseMap</h1>
             <p>Personal comfort dashboard</p>
           </div>
         </div>
@@ -411,12 +413,27 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
 
         <div className="lmv-nav-spacer" />
 
+        <div className="lmv-theme-switcher" role="group" aria-label="Theme">
+          {['nature', 'calm'].map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`lmv-theme-btn lmv-theme-btn--text ${theme === t ? 'active' : ''}`}
+              onClick={() => setTheme(t)}
+              aria-pressed={theme === t}
+              aria-label={`${t.charAt(0).toUpperCase() + t.slice(1)} theme`}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
+        </div>
+
         <div className="lmv-nav-user" onClick={() => setShowLogoutModal(true)} style={{ cursor: 'pointer' }}>
           <div className="lmv-nav-avatar">
             {user?.picture ? (
               <img src={user.picture} alt="" />
             ) : (
-              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #4b8bff, #6ad6c8)' }} />
+              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, var(--theme-accent), var(--theme-accent-soft))' }} />
             )}
           </div>
           <div className="lmv-nav-user-info">
@@ -565,7 +582,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
               <button
                 className="lmv-map-time-filter"
                 onClick={() => setActiveFilter((prev) => prev === 'before-noon' ? null : 'before-noon')}
-                style={{ cursor: 'pointer', border: activeFilter === 'before-noon' ? '2px solid #4b8bff' : '1px solid rgba(0,0,0,0.08)' }}
+                style={{ cursor: 'pointer', border: activeFilter === 'before-noon' ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)' }}
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0f1720" strokeWidth="1.3"/><path d="M8 4V8L10.5 9.5" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Before 11am
@@ -645,7 +662,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 {(locationDetail?.imageUrl || locationDetail?.reviews?.find((r) => r.imageUrl)?.imageUrl) ? (
                   <img src={locationDetail.imageUrl || locationDetail.reviews.find((r) => r.imageUrl).imageUrl} alt={locName} />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8f0fe, #d4e8e6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>
+                  <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, var(--theme-tag-soft), var(--theme-tag-strong))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--theme-text-muted)', fontSize: 13 }}>
                     {locName}
                   </div>
                 )}
@@ -750,8 +767,8 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={noiseChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#edf3f8" />
-                    <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#6b7280' }} />
-                    <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} domain={[0, 5]} />
+                    <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} />
+                    <YAxis tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} domain={[0, 5]} />
                     <Tooltip />
                     <Line type="monotone" dataKey="noise" stroke="#ffb3a3" strokeWidth={2} dot={false} name="Noise" />
                     <Line type="monotone" dataKey="calm" stroke="#6ad6c8" strokeWidth={2} dot={false} name="Calm" />
@@ -820,7 +837,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   </div>
                 </>
               ) : (
-                <p style={{ color: '#6b7280', fontSize: 13 }}>Select a location to see AI insights.</p>
+                <p style={{ color: 'var(--theme-text-muted)', fontSize: 13 }}>Select a location to see AI insights.</p>
               )}
             </div>
 
@@ -836,9 +853,9 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarData} outerRadius={70}>
                       <PolarGrid stroke="#e5e7eb" />
-                      <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: '#6b7280' }} />
+                      <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} />
                       <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fontSize: 9, fill: '#94a3b8' }} />
-                      <Radar dataKey="value" stroke="#4b8bff" fill="#4b8bff" fillOpacity={0.25} />
+                      <Radar dataKey="value" stroke="var(--theme-accent)" fill="var(--theme-accent)" fillOpacity={0.25} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
@@ -919,7 +936,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                       {check}
                     </div>
                   )) : (
-                    <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>
+                    <p style={{ color: 'var(--theme-text-muted)', fontSize: 13, margin: 0 }}>
                       {userProfile ? 'Select a location to see match details.' : 'Set up your sensory profile to see matches.'}
                     </p>
                   )}

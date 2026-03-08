@@ -128,13 +128,13 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
       {/* Top bar */}
       <div className="sp-topbar">
         <span className="sp-topbar-title">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12.25 14.75L8 11L3.75 14.75V3.25C3.75 2.85 3.91 2.47 4.19 2.19C4.47 1.91 4.85 1.75 5.25 1.75H10.75C11.15 1.75 11.53 1.91 11.81 2.19C12.09 2.47 12.25 2.85 12.25 3.25V14.75Z" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12.25 14.75L8 11L3.75 14.75V3.25C3.75 2.85 3.91 2.47 4.19 2.19C4.47 1.91 4.85 1.75 5.25 1.75H10.75C11.15 1.75 11.53 1.91 11.81 2.19C12.09 2.47 12.25 2.85 12.25 3.25V14.75Z" stroke="var(--theme-text)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Saved Places List
         </span>
         <div className="sp-topbar-actions">
           <div className="sp-filter-dropdown-wrap">
             <button type="button" className="sp-btn-outline" onClick={() => setShowFilterMenu((v) => !v)}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="var(--theme-text)" strokeWidth="1.3" strokeLinecap="round"/></svg>
               {SORT_OPTIONS.find((o) => o.id === sortBy)?.label || 'Filter'}
             </button>
             {showFilterMenu && (
@@ -147,7 +147,7 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
                     onClick={() => { setSortBy(opt.id); setShowFilterMenu(false); }}
                   >
                     {sortBy === opt.id && (
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="#4b8bff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="var(--theme-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     )}
                     {opt.label}
                   </button>
@@ -195,7 +195,7 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
         {/* Filter bar */}
         {places.length > 3 && (
           <div className="sp-filter-bar">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8.25" cy="8.25" r="4.5" stroke="#6b7280" strokeWidth="1.5"/><path d="M15.75 15.75L11.5 11.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8.25" cy="8.25" r="4.5" stroke="var(--theme-text-muted)" strokeWidth="1.5"/><path d="M15.75 15.75L11.5 11.5" stroke="var(--theme-text-muted)" strokeWidth="1.5" strokeLinecap="round"/></svg>
             <input type="text" placeholder="Search saved places…" value={filterText} onChange={(e) => setFilterText(e.target.value)} />
           </div>
         )}
@@ -317,7 +317,7 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
         {/* Top bar */}
         <div className="spd-topbar">
           <button type="button" className="spd-back-btn" onClick={onBack}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="#0f1720" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 4L6 8l4 4" stroke="var(--theme-text)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Back to Saved Places
           </button>
           <div className="spd-topbar-actions">
@@ -376,7 +376,7 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
                 <p className="spd-card-desc">Analyzed from {reviews.length} recent community reviews matching your sensory needs.</p>
               </div>
               <span className="spd-ai-badge">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#4b8bff" strokeWidth="1.2"/><path d="M5.25 7h3.5M7 5.25v3.5" stroke="#4b8bff" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="var(--theme-accent)" strokeWidth="1.2"/><path d="M5.25 7h3.5M7 5.25v3.5" stroke="var(--theme-accent)" strokeWidth="1.2" strokeLinecap="round"/></svg>
                 AI Summary
               </span>
             </div>
@@ -520,7 +520,7 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
                 <polygon
                   points={`50,${50 - (noiseScore / 5) * 40} ${50 + (crowdScore / 5) * 40},50 50,${50 + (comfortScore / 5) * 40} ${50 - (lightScore / 5) * 40},50`}
                   fill="rgba(75, 139, 255, 0.2)"
-                  stroke="#4b8bff"
+                  stroke="var(--theme-accent)"
                   strokeWidth="2"
                 />
               </svg>
@@ -535,11 +535,11 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
           <div className="spd-breakdown">
             <div className="spd-bd-row">
               <span>Noise Impact ({noisePct}%)</span>
-              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${noisePct}%`, background: '#4b8bff' }} /></div>
+              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${noisePct}%`, background: 'var(--theme-accent)' }} /></div>
             </div>
             <div className="spd-bd-row">
               <span>Crowds Impact ({crowdPct}%)</span>
-              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${crowdPct}%`, background: '#6ad6c8' }} /></div>
+              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${crowdPct}%`, background: 'var(--theme-accent-soft)' }} /></div>
             </div>
             <div className="spd-bd-row">
               <span>Lighting Impact ({lightPct}%)</span>

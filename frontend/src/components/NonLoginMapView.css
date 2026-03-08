@@ -16,31 +16,178 @@
   z-index: 0;
 }
 
-/* ── Left Sidebar ── */
+/* Shift Mapbox zoom/locate controls down 10px */
+.nlm-map-container .mapboxgl-ctrl-top-right {
+  margin-top: 10px;
+}
+
+/* ── Left Sidebar (stops above Mapbox logo) ── */
 .nlm-sidebar-left {
   position: absolute;
   top: 16px;
   left: 16px;
-  width: 320px;
+  width: 340px;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 21px;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(216, 216, 216, 0.35);
   border-radius: 16px;
   box-shadow: 0px 16px 32px rgba(15, 23, 32, 0.08);
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
+  max-height: calc(100vh - 72px);
+  overflow: hidden;
+  transition: width 250ms ease-in-out;
 }
 
-.nlm-sidebar-left::-webkit-scrollbar {
+.nlm-sidebar-left--collapsed {
+  width: 52px;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+
+.nlm-sidebar-left--collapsed .nlm-logo-row {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left--collapsed .nlm-logo-group {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left .nlm-logo-group {
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left--collapsed .nlm-sidebar-left-body {
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left .nlm-sidebar-left-body {
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left-header {
+  flex-shrink: 0;
+  padding: 21px 21px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
+}
+
+.nlm-sidebar-left--collapsed .nlm-sidebar-left-header {
+  justify-content: center;
+  padding: 12px 10px;
+  flex-direction: column;
+  gap: 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-hint {
+  display: none;
+}
+
+.nlm-nav-collapse-hint {
+  display: none;
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-btn {
+  transform: translateX(-5px);
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  color: #0f1720;
+  border: 2px solid rgba(15, 23, 32, 0.12);
+  box-shadow: 0 4px 12px rgba(15, 23, 32, 0.15);
+}
+
+/* Collapse / expand button */
+.nlm-nav-collapse-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(15, 23, 32, 0.1);
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 32, 0.08);
+  transition: background-color 200ms ease-in-out, color 200ms ease-in-out, box-shadow 200ms ease-in-out, border-color 200ms ease-in-out;
+}
+
+.nlm-nav-collapse-btn:hover {
+  background: #e2e8f0;
+  color: #0f1720;
+  box-shadow: 0 4px 12px rgba(15, 23, 32, 0.12);
+}
+
+.nlm-nav-collapse-btn:focus-visible {
+  outline: 2px solid #4b8bff;
+  outline-offset: 2px;
+}
+
+.nlm-nav-collapse-arrow {
+  transition: transform 250ms ease-in-out;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.nlm-nav-collapse-btn .nlm-nav-collapse-arrow {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-arrow {
+  transform: rotate(180deg);
+  width: 24px;
+  height: 24px;
+}
+
+.nlm-sidebar-left-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 21px 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.nlm-sidebar-left-body::-webkit-scrollbar {
   width: 4px;
 }
 
-.nlm-sidebar-left::-webkit-scrollbar-thumb {
+.nlm-sidebar-left-body::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.12);
   border-radius: 4px;
 }
@@ -273,17 +420,17 @@
   color: #4a2a00;
 }
 
-/* ── Right Sidebar ── */
+/* ── Right Sidebar (clear of map zoom controls) ── */
 .nlm-sidebar-right {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 20px;
+  right: 48px;
   width: 320px;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: calc(100vh - 48px);
+  gap: 20px;
+  max-height: calc(100vh - 72px);
   overflow-y: auto;
 }
 
@@ -296,60 +443,133 @@
   border-radius: 4px;
 }
 
-/* Ratings card */
+/* Ratings card — compact so it doesn’t overlap zoom */
 .nlm-ratings-card {
   background: linear-gradient(to bottom, #fff, #e4f8f5);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 22px 24px;
+  box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.nlm-ratings-no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 28px 20px;
+  gap: 12px;
+  background: linear-gradient(165deg, #f8fafc 0%, #f0f9ff 50%, #ecfdf5 100%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.nlm-ratings-no-selection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #4b8bff 0%, #22c55e 50%, #06b6d4 100%);
+  opacity: 0.85;
+}
+
+.nlm-ratings-no-selection-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(75, 139, 255, 0.12) 0%, rgba(34, 197, 94, 0.1) 100%);
+  border: 1px solid rgba(75, 139, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b8bff;
+  flex-shrink: 0;
+}
+
+.nlm-ratings-no-selection-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.nlm-ratings-no-selection-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.nlm-ratings-no-selection-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f1720;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.nlm-ratings-no-selection-hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.5;
+  max-width: 260px;
 }
 
 .nlm-ratings-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 10px;
 }
 
 .nlm-ratings-title h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #0f1720;
-  letter-spacing: -0.18px;
+  letter-spacing: -0.15px;
 }
 
 .nlm-ratings-title p {
-  margin: 4px 0 0;
-  font-size: 14px;
+  margin: 6px 0 0;
+  font-size: 13px;
   font-weight: 400;
   color: #6b7280;
 }
 
 .nlm-score-badge {
-  min-width: 92px;
-  padding: 12px 20px;
-  border-radius: 8px;
+  min-width: 56px;
+  padding: 8px 12px;
+  border-radius: 6px;
   background: linear-gradient(135deg, #e2ecff, #d8f4f1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .nlm-score-badge .score-value {
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f1720;
-  line-height: 26px;
+  line-height: 20px;
 }
 
 .nlm-score-badge .score-label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   color: #6b7280;
 }
@@ -357,13 +577,13 @@
 /* Stars */
 .nlm-stars {
   display: flex;
-  gap: 6px;
+  gap: 4px;
 }
 
 .nlm-star {
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -387,8 +607,8 @@
 }
 
 .nlm-star img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 /* Tags (badges) */
@@ -400,10 +620,10 @@
 
 .nlm-rating-tag {
   display: inline-flex;
-  padding: 8px 14px;
+  padding: 5px 12px;
   border-radius: 999px;
   background: #b4ebe4;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: #0f1720;
   width: fit-content;
@@ -413,18 +633,18 @@
 .nlm-score-bars {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   padding-top: 4px;
 }
 
 .nlm-score-row {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
 }
 
 .nlm-score-label {
-  width: 80px;
+  width: 68px;
   font-size: 13px;
   font-weight: 500;
   color: #0f1720;
@@ -433,7 +653,7 @@
 
 .nlm-score-bar {
   flex: 1;
-  height: 8px;
+  height: 6px;
   background: #eff4f9;
   border-radius: 999px;
   overflow: hidden;
@@ -446,7 +666,7 @@
 }
 
 .nlm-score-value {
-  width: 28px;
+  width: 26px;
   text-align: right;
   font-size: 13px;
   font-weight: 600;
@@ -454,29 +674,33 @@
   flex-shrink: 0;
 }
 
-/* Sign in card */
+/* Sign in card — compact, details in popup */
+.nlm-signin-card--popover-wrap {
+  position: relative;
+}
+
 .nlm-signin-card {
   background: white;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  padding: 25px;
-  box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  padding: 12px 16px 14px;
+  box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .nlm-signin-header {
   display: flex;
-  gap: 14px;
-  align-items: flex-start;
+  gap: 8px;
+  align-items: center;
 }
 
 .nlm-signin-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: rgba(75, 139, 255, 0.1);
   display: flex;
   align-items: center;
@@ -485,59 +709,136 @@
 }
 
 .nlm-signin-icon img {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
+}
+
+.nlm-signin-text {
+  flex: 1;
+  min-width: 0;
 }
 
 .nlm-signin-text h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
+  color: #0f1720;
+  line-height: 1.3;
+}
+
+.nlm-signin-info-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nlm-signin-info-btn:hover {
+  background: #cbd5e1;
   color: #0f1720;
 }
 
-.nlm-signin-text p {
-  margin: 3px 0 0;
-  font-size: 13px;
+.nlm-signin-info-btn:focus-visible {
+  outline: 2px solid #4b8bff;
+  outline-offset: 2px;
+}
+
+.nlm-signin-popup {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 8px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.nlm-signin-popup-inner {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 40px rgba(15, 23, 32, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+  max-width: 100%;
+}
+
+.nlm-signin-popup-arrow {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+  margin-top: -1px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.06));
+}
+
+.nlm-signin-desc {
+  margin: 0;
+  font-size: 12px;
   font-weight: 400;
   color: #6b7280;
-  line-height: 19.5px;
+  line-height: 1.4;
 }
 
 .nlm-signin-benefits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .nlm-benefit-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 400;
   color: #0f1720;
 }
 
 .nlm-benefit-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
   background: #9ee6b8;
   flex-shrink: 0;
+}
+
+.nlm-signin-popup .nlm-signin-note {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.35;
 }
 
 .nlm-signin-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 24px;
+  gap: 6px;
+  padding: 8px 14px;
   border-radius: 999px;
   background: #4b8bff;
   border: none;
   color: white;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
   width: fit-content;
@@ -549,16 +850,16 @@
 }
 
 .nlm-signin-btn img {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .nlm-signin-note {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
   color: #6b7280;
-  line-height: 18px;
+  line-height: 1.35;
 }
 
 /* ── Top Center: Heatmap Toggle ── */
@@ -566,6 +867,7 @@
   position: absolute;
   top: 20px;
   left: 50%;
+  right: auto;
   transform: translateX(-50%);
   z-index: 10;
   width: 420px;
@@ -579,6 +881,7 @@
   border: 1px solid rgba(219, 219, 219, 0.37);
   border-radius: 16px;
   box-shadow: 0px 12px 28px rgba(15, 23, 32, 0.08);
+  margin-left: 0;
 }
 
 .nlm-heatmap-info h4 {
@@ -656,54 +959,71 @@
   color: #94a3b8;
 }
 
-/* ── Bottom: Search Bar ── */
+/* ── Bottom: Search Bar (search + categories in one bar) ── */
 .nlm-bottom-search {
   position: absolute;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  width: 680px;
+  width: 520px;
   z-index: 10;
   background: white;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  padding: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 0;
   box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  overflow: hidden;
 }
+
+.nlm-search-bar-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 30px 20px 25px;
+  gap: 0;
+}
+
+.nlm-search-bar-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 10px 0 12px;
+  flex-shrink: 0;
+}
+
 
 .nlm-search-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .nlm-search-input {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 17px 19px;
+  gap: 10px;
+  padding: 10px 14px;
   border-radius: 999px;
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .nlm-search-input img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   flex-shrink: 0;
 }
 
 .nlm-search-input input {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   color: #0f1720;
   font-family: 'Inter', sans-serif;
@@ -716,13 +1036,13 @@
 .nlm-search-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px 20px;
+  gap: 6px;
+  padding: 10px 16px;
   border-radius: 999px;
   background: #4b8bff;
   border: none;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: 'Inter', sans-serif;
@@ -739,67 +1059,79 @@
   height: 16px;
 }
 
-/* Category suggestion chips */
+.nlm-search-no-results {
+  margin: 0;
+  padding: 8px 16px 12px;
+  color: #ef4444;
+  font-size: 13px;
+  text-align: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Category chips inside search bar */
 .nlm-category-chips {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .nlm-cat-chip {
   flex: 1;
+  min-width: 100px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 8px 10px;
   border-radius: 8px;
-  background: #edf3f8;
-  border: none;
+  background: #f1f5f9;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .nlm-cat-chip:hover {
-  background: #dfe9f3;
+  background: #e2e8f0;
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
-.nlm-cat-chip-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.nlm-cat-chip-emoji {
+  font-size: 15px;
+  line-height: 1;
   flex-shrink: 0;
 }
 
-.nlm-cat-chip-icon img {
-  width: 16px;
-  height: 16px;
+.nlm-cat-chip-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+  flex: 1;
 }
 
-.nlm-cat-chip-text h5 {
-  margin: 0;
-  font-size: 13px;
+.nlm-cat-chip-title {
+  font-size: 12px;
   font-weight: 600;
   color: #0f1720;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90px;
+  max-width: 100%;
+  line-height: 1.2;
 }
 
-.nlm-cat-chip-text p {
-  margin: 2px 0 0;
-  font-size: 12px;
+.nlm-cat-chip-desc {
+  font-size: 10px;
   font-weight: 400;
   color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90px;
+  max-width: 100%;
+  line-height: 1.2;
+  margin-top: 1px;
 }
 
 /* ── Map Pins (on map) ── */

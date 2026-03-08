@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import MapView from './MapView';
 import Dashboard from './Dashboard';
+import SavedPlaces from './SavedPlaces';
 import LogoutConfirmation from './LogoutConfirmation';
 import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, getLocationById, getAIInsights, searchLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
 import './LoggedInMapView.css';
@@ -11,7 +12,7 @@ import './LoggedInMapView.css';
 const NAV_ITEMS = [
   { id: 'explore', label: 'Explore map', icon: 'map', route: null },
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', route: null },
-  { id: 'saved', label: 'Saved places', icon: 'bookmark', route: '/saved-places' },
+  { id: 'saved', label: 'Saved places', icon: 'bookmark', route: null },
   { id: 'profile', label: 'Sensory profile', icon: 'sliders', route: '/profile' },
   { id: 'settings', label: 'Settings', icon: 'settings', route: '/settings' },
 ];
@@ -67,6 +68,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [avgRating, setAvgRating] = useState(null);
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [savedPlaceIds, setSavedPlaceIds] = useState(new Set());
+  const [savedPlacesList, setSavedPlacesList] = useState([]);
   const [saveLoading, setSaveLoading] = useState(false);
 
   // --- Mount: fetch heatmap, rankings, geolocation, match scores, profile, saved places ---
@@ -125,6 +127,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           getSavedPlaces()
             .then((res) => {
               const list = Array.isArray(res.data) ? res.data : [];
+              setSavedPlacesList(list);
               setSavedPlaceIds(new Set(list.map((s) => s.location?.id || s.locationId).filter(Boolean)));
             })
             .catch(() => {});
@@ -215,6 +218,16 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     navigate('/profile');
   };
 
+  const refreshSavedPlaces = () => {
+    getSavedPlaces()
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : [];
+        setSavedPlacesList(list);
+        setSavedPlaceIds(new Set(list.map((s) => s.location?.id || s.locationId).filter(Boolean)));
+      })
+      .catch(() => {});
+  };
+
   const handleToggleSaved = async () => {
     const locId = selectedLocation?.id;
     if (!locId || saveLoading) return;
@@ -232,6 +245,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         await savePlace(locId);
         setSavedPlaceIds((prev) => new Set([...prev, locId]));
       }
+      refreshSavedPlaces();
     } catch {
       // keep state unchanged on error
     } finally {
@@ -391,8 +405,40 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         </div>
       </nav>
 
-      {activeNav === 'dashboard' ? (
-        <Dashboard />
+      {activeNav === 'saved' ? (
+        <SavedPlaces
+          savedPlacesList={savedPlacesList}
+          userCoords={userCoords}
+          userProfile={userProfile}
+          matchScores={matchScores}
+          onRemovePlace={async (locId) => {
+            try {
+              await removeSavedPlace(locId);
+              refreshSavedPlaces();
+            } catch { /* ignore */ }
+          }}
+          onBack={() => setActiveNav('explore')}
+        />
+      ) : activeNav === 'dashboard' ? (
+        <Dashboard
+          userProfile={userProfile}
+          savedPlacesList={savedPlacesList}
+          bestMatch={matchScores?.[0] ?? null}
+          userCoords={userCoords}
+          snapshot={snapshot}
+          onEditProfile={() => navigate('/profile')}
+          onViewAllSaved={() => setActiveNav('saved')}
+          onCalmRoute={() => { setActiveNav('explore'); setActiveFilter((prev) => prev === 'quiet-now' ? null : 'quiet-now'); }}
+          onSearchGo={(query) => {
+            setSearchQuery(query);
+            setActiveNav('explore');
+            setSearchLoading(true);
+            searchLocations(query.trim())
+              .then((res) => setSearchResults(res.data))
+              .catch(() => setSearchResults({ features: [] }))
+              .finally(() => setSearchLoading(false));
+          }}
+        />
       ) : (
         <>
           {/* Center Main */}

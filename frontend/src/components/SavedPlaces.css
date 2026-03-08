@@ -1146,6 +1146,55 @@
 .spd-remove-btn:hover:not(:disabled) { background: #fef2f2; }
 .spd-remove-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Filter dropdown ── */
+.sp-filter-dropdown-wrap {
+  position: relative;
+}
+
+.sp-filter-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  min-width: 200px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sp-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f1720;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+}
+
+.sp-filter-option:hover {
+  background: #f1f5f9;
+}
+
+.sp-filter-option.active {
+  background: #ebf4ff;
+  color: #4b8bff;
+  font-weight: 600;
+}
+
 /* Focus */
 .sp-btn-outline:focus-visible,
 .sp-btn-primary:focus-visible,

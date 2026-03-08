@@ -44,9 +44,19 @@ function matchDescription(score10, userProfile) {
   return 'Might not fully match your preferences';
 }
 
+const SORT_OPTIONS = [
+  { id: 'match-desc', label: 'Best match first' },
+  { id: 'distance-asc', label: 'Nearest first' },
+  { id: 'noise-asc', label: 'Quietest first' },
+  { id: 'crowd-asc', label: 'Least crowded first' },
+  { id: 'name-asc', label: 'Name A–Z' },
+];
+
 function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScores = [], onRemovePlace, onBack }) {
   const [filterText, setFilterText] = useState('');
   const [selectedPlace, setSelectedPlace] = useState(null);
+  const [sortBy, setSortBy] = useState('match-desc');
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
 
   const places = savedPlacesList.map((s) => {
     const loc = s.location || {};
@@ -89,6 +99,17 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
     return p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || p.address.toLowerCase().includes(q);
   });
 
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case 'match-desc': return (b.score10 ?? -1) - (a.score10 ?? -1);
+      case 'distance-asc': return (a.km ?? Infinity) - (b.km ?? Infinity);
+      case 'noise-asc': return a.noise - b.noise;
+      case 'crowd-asc': return a.crowd - b.crowd;
+      case 'name-asc': return a.name.localeCompare(b.name);
+      default: return 0;
+    }
+  });
+
   if (selectedPlace) {
     return (
       <SavedPlaceDetail
@@ -110,10 +131,29 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
           Saved Places List
         </span>
         <div className="sp-topbar-actions">
-          <button type="button" className="sp-btn-outline" onClick={() => {}}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 2H2L6.67 7.46V12L9.33 13.33V7.46L14 2Z" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            Filter
-          </button>
+          <div className="sp-filter-dropdown-wrap">
+            <button type="button" className="sp-btn-outline" onClick={() => setShowFilterMenu((v) => !v)}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M4 8h8M6 12h4" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              {SORT_OPTIONS.find((o) => o.id === sortBy)?.label || 'Filter'}
+            </button>
+            {showFilterMenu && (
+              <div className="sp-filter-menu">
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`sp-filter-option ${sortBy === opt.id ? 'active' : ''}`}
+                    onClick={() => { setSortBy(opt.id); setShowFilterMenu(false); }}
+                  >
+                    {sortBy === opt.id && (
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="#4b8bff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button type="button" className="sp-btn-primary" onClick={onBack}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="white" strokeWidth="1.3"/><path d="M8 2v1M8 13v1M2 8h1M13 8h1" stroke="white" strokeWidth="1.3" strokeLinecap="round"/></svg>
             View on map
@@ -160,13 +200,13 @@ function SavedPlaces({ savedPlacesList = [], userCoords, userProfile, matchScore
         )}
 
         {/* Place cards */}
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <div className="sp-empty-card">
             <p>{places.length === 0 ? 'No saved places yet.' : `No places match "${filterText}".`}</p>
             {places.length === 0 && <p className="sp-empty-hint">Save locations from the map to build your trusted list.</p>}
           </div>
         ) : (
-          filtered.map((place) => (
+          sorted.map((place) => (
             <div key={place.id} className="sp-place-card">
               <div className="sp-place-image">
                 <div className="sp-place-image-placeholder">

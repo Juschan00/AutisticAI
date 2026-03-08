@@ -1,0 +1,267 @@
+/* ── Sensory Profile Page ── */
+.spro-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: #f4f7fb;
+}
+
+/* ── Header ── */
+.spro-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.spro-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f1720;
+  margin: 0 0 4px;
+}
+
+.spro-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+.spro-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f1720;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.spro-reset-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* ── Saving indicator ── */
+.spro-saving {
+  font-size: 12px;
+  color: #6ad6c8;
+  font-weight: 600;
+  text-align: right;
+  margin-top: -12px;
+}
+
+/* ── 2-column grid ── */
+.spro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ── Individual slider card ── */
+.spro-slider-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: box-shadow 0.2s;
+}
+
+.spro-slider-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Top row: icon + label + status badge */
+.spro-slider-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spro-slider-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spro-slider-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+
+.spro-slider-label h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f1720;
+  margin: 0;
+}
+
+/* ── Status badge ── */
+.spro-status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.spro-status-badge.quiet {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.spro-status-badge.moderate {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.spro-status-badge.high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ── Track area ── */
+.spro-track-wrap {
+  position: relative;
+  height: 36px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  overflow: visible;
+}
+
+/* Colored environment bar */
+.spro-env-bar {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  height: 100%;
+  transition: width 0.25s ease;
+}
+
+/* Threshold marker */
+.spro-threshold-marker {
+  position: absolute;
+  top: -20px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  transition: left 0.25s ease;
+  z-index: 2;
+}
+
+.spro-threshold-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.spro-threshold-line {
+  width: 2px;
+  height: 56px;
+  background: #0f1720;
+  border-radius: 1px;
+}
+
+/* Native range overlay */
+.spro-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.spro-range:focus {
+  outline: none;
+}
+
+/* Webkit thumb */
+.spro-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 36px;
+  background: #0f1720;
+  border-radius: 4px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+}
+
+.spro-range::-webkit-slider-thumb:active {
+  cursor: grabbing;
+}
+
+/* Firefox thumb */
+.spro-range::-moz-range-thumb {
+  width: 18px;
+  height: 36px;
+  background: #0f1720;
+  border-radius: 4px;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: grab;
+}
+
+.spro-range::-moz-range-track {
+  background: transparent;
+}
+
+/* ── Min/Max labels ── */
+.spro-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Coming soon indicator ── */
+.spro-coming-soon {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+  padding: 3px 0 0;
+  letter-spacing: 0.2px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .spro-grid {
+    grid-template-columns: 1fr;
+  }
+  .spro-page {
+    padding: 20px 16px;
+  }
+}

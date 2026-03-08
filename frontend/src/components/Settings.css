@@ -1,0 +1,361 @@
+/* ── Settings Page ── */
+.sett-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  overflow-y: auto;
+  padding: 28px 32px;
+  background: #f4f7fb;
+}
+
+/* ── Header ── */
+.sett-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.sett-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f1720;
+  margin: 0 0 4px;
+}
+
+.sett-header p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Grid ── */
+.sett-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ── Card ── */
+.sett-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sett-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sett-card h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f1720;
+  margin: 0;
+}
+
+.sett-card-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: -8px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Account Card ── */
+.sett-account-card {
+  grid-column: 1 / -1;
+}
+
+.sett-account-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sett-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid #e2e8f0;
+}
+
+.sett-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sett-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #4b8bff, #6ad6c8);
+}
+
+.sett-account-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sett-account-info h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1720;
+  margin: 0;
+}
+
+.sett-email {
+  font-size: 13px;
+  color: #475569;
+}
+
+.sett-joined {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Completeness */
+.sett-completeness {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sett-completeness-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.sett-completeness-pct {
+  font-weight: 700;
+  color: #0f1720;
+}
+
+.sett-completeness-bar {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sett-completeness-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4b8bff, #6ad6c8);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* Account fields */
+.sett-account-fields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.sett-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.sett-field label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sett-field span {
+  font-size: 13px;
+  color: #0f1720;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+/* ── Toggle Row ── */
+.sett-toggle-row,
+.sett-select-row,
+.sett-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sett-toggle-row:last-child,
+.sett-select-row:last-child,
+.sett-action-row:last-child {
+  border-bottom: none;
+}
+
+.sett-toggle-row > div,
+.sett-select-row > div,
+.sett-action-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sett-toggle-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f1720;
+}
+
+.sett-toggle-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* ── Toggle Switch ── */
+.sett-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: #e2e8f0;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.sett-switch.on {
+  background: #4b8bff;
+}
+
+.sett-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.sett-switch.on .sett-switch-knob {
+  transform: translateX(18px);
+}
+
+/* ── Select ── */
+.sett-select {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #0f1720;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  outline: none;
+}
+
+.sett-select:focus {
+  border-color: #4b8bff;
+}
+
+/* ── Buttons ── */
+.sett-btn {
+  padding: 7px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sett-btn-logout {
+  color: #0f1720;
+  background: #fff;
+}
+
+.sett-btn-logout:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.sett-btn-reset {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.sett-btn-reset:hover {
+  background: #fde68a;
+}
+
+.sett-btn-danger {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.sett-btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Danger row highlight */
+.sett-action-danger {
+  padding-top: 14px;
+  margin-top: 4px;
+  border-top: 1px dashed #fecaca;
+  border-bottom: none;
+}
+
+/* ── Danger Card ── */
+.sett-danger-card h2 {
+  color: #0f1720;
+}
+
+/* ── Footer ── */
+.sett-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 8px 0 4px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .sett-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sett-account-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .sett-page {
+    padding: 20px 16px;
+  }
+}

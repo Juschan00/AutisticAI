@@ -43,7 +43,7 @@ function getComfortColor(score) {
     return [r, g, b, 220];
 }
 
-function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled }) {
+function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, flyToLocation }) {
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
     const overlayRef = useRef(null);
@@ -152,6 +152,19 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
             }
         };
     }, []);
+
+    useEffect(() => {
+        if (!mapRef.current || !flyToLocation) return;
+        const { longitude, latitude, zoom } = flyToLocation;
+        if (longitude == null || latitude == null) return;
+        mapRef.current.flyTo({
+            center: [longitude, latitude],
+            zoom: zoom ?? 16,
+            pitch: 45,
+            duration: 1800,
+            essential: true,
+        });
+    }, [flyToLocation]);
 
     const buildLayers = useCallback(() => {
         const active = [];

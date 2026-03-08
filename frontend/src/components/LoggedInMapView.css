@@ -415,10 +415,22 @@
 .lmv-nearby-cards {
   display: flex;
   gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.lmv-nearby-cards::-webkit-scrollbar {
+  display: none;
 }
 
 .lmv-nearby-card {
-  flex: 1;
+  flex: 0 0 260px;
+  min-width: 260px;
+  scroll-snap-align: start;
   padding: 15px;
   border-radius: 12px;
   backdrop-filter: blur(8px);

@@ -5,16 +5,18 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import MapView from './MapView';
 import Dashboard from './Dashboard';
 import SavedPlaces from './SavedPlaces';
+import SensoryProfile from './SensoryProfile';
+import Settings from './Settings';
 import LogoutConfirmation from './LogoutConfirmation';
-import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, getLocationById, getAIInsights, searchLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
+import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
 import './LoggedInMapView.css';
 
 const NAV_ITEMS = [
   { id: 'explore', label: 'Explore map', icon: 'map', route: null },
   { id: 'dashboard', label: 'Dashboard', icon: 'grid', route: null },
   { id: 'saved', label: 'Saved places', icon: 'bookmark', route: null },
-  { id: 'profile', label: 'Sensory profile', icon: 'sliders', route: '/profile' },
-  { id: 'settings', label: 'Settings', icon: 'settings', route: '/settings' },
+  { id: 'profile', label: 'Sensory profile', icon: 'sliders', route: null },
+  { id: 'settings', label: 'Settings', icon: 'settings', route: null },
 ];
 
 const scoreToLabel = (s) => s < 2 ? 'Low' : s < 3.5 ? 'Medium' : 'High';
@@ -70,6 +72,33 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [savedPlaceIds, setSavedPlaceIds] = useState(new Set());
   const [savedPlacesList, setSavedPlacesList] = useState([]);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [flyToLocation, setFlyToLocation] = useState(null);
+
+  const buildSnapshot = useCallback((data, coords) => {
+    if (!Array.isArray(data) || data.length === 0) return;
+    const nearby = coords
+      ? data.filter((l) => {
+          if (l.latitude == null || l.longitude == null) return false;
+          const R = 6371;
+          const dLat = ((l.latitude - coords.lat) * Math.PI) / 180;
+          const dLon = ((l.longitude - coords.lng) * Math.PI) / 180;
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos((coords.lat * Math.PI) / 180) * Math.cos((l.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+          return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) < 10;
+        })
+      : data;
+    const calmCount = nearby.filter((l) => (l.comfortScore ?? 0) > 3.5).length;
+    const avgNoise = nearby.length > 0 ? nearby.reduce((a, b) => a + (b.noiseScore ?? 0), 0) / nearby.length : 0;
+    const avgComfort = nearby.length > 0 ? nearby.reduce((a, b) => a + (b.comfortScore ?? 0), 0) / nearby.length : 0;
+    const hour = new Date().getHours();
+    const bestWindow = hour < 10 ? 'Morning' : hour < 14 ? 'Midday' : hour < 17 ? 'Afternoon' : 'Evening';
+    setSnapshot({ calmCount, noiseTrend: scoreToLabel(avgNoise), avgComfort, bestWindow });
+  }, []);
+
+  useEffect(() => {
+    if (heatmapData.length > 0 && userCoords) {
+      buildSnapshot(heatmapData, userCoords);
+    }
+  }, [userCoords, heatmapData, buildSnapshot]);
 
   // --- Mount: fetch heatmap, rankings, geolocation, match scores, profile, saved places ---
   useEffect(() => {
@@ -78,12 +107,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         const data = res.data;
         if (Array.isArray(data)) {
           setHeatmapData(data);
-          const calmCount = data.filter((l) => (l.comfortScore ?? 0) > 3.5).length;
-          const avgNoise = data.length > 0 ? data.reduce((a, b) => a + (b.noiseScore ?? 0), 0) / data.length : 0;
-          const avgComfort = data.length > 0 ? data.reduce((a, b) => a + (b.comfortScore ?? 0), 0) / data.length : 0;
-          const hour = new Date().getHours();
-          const bestWindow = hour < 12 ? 'Morning' : hour < 17 ? 'Afternoon' : 'Evening';
-          setSnapshot({ calmCount, noiseTrend: scoreToLabel(avgNoise), avgComfort, bestWindow });
+          buildSnapshot(data, null);
         }
       })
       .catch(() => {});
@@ -93,7 +117,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         const data = res.data;
         if (Array.isArray(data) && data.length > 0) {
           setRankings(data);
-          setNearbyPlaces(data.slice(0, 3).map((loc) => ({
+          setNearbyPlaces(data.slice(0, 6).map((loc) => ({
             name: loc.name,
             score: loc.comfortScore ?? 0,
             tags: loc.category || 'Sensory-friendly',
@@ -215,7 +239,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   };
 
   const handlePersonalize = () => {
-    navigate('/profile');
+    setActiveNav('profile');
   };
 
   const refreshSavedPlaces = () => {
@@ -405,7 +429,23 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         </div>
       </nav>
 
-      {activeNav === 'saved' ? (
+      {activeNav === 'settings' ? (
+        <Settings
+          user={user}
+          userProfile={userProfile}
+          onLogout={() => setShowLogoutModal(true)}
+        />
+      ) : activeNav === 'profile' ? (
+        <SensoryProfile
+          userProfile={userProfile}
+          onSave={async (data) => {
+            try {
+              const res = await updateSensoryProfile(data);
+              setUserProfile(res.data);
+            } catch { /* ignore */ }
+          }}
+        />
+      ) : activeNav === 'saved' ? (
         <SavedPlaces
           savedPlacesList={savedPlacesList}
           userCoords={userCoords}
@@ -426,7 +466,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           bestMatch={matchScores?.[0] ?? null}
           userCoords={userCoords}
           snapshot={snapshot}
-          onEditProfile={() => navigate('/profile')}
+          onEditProfile={() => setActiveNav('profile')}
           onViewAllSaved={() => setActiveNav('saved')}
           onCalmRoute={() => { setActiveNav('explore'); setActiveFilter((prev) => prev === 'quiet-now' ? null : 'quiet-now'); }}
           onSearchGo={(query) => {
@@ -502,6 +542,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   searchResultsGeoJSON={searchResults}
                   selectedLocationId={selectedLocation?.id}
                   selectedLocation={selectedLocation}
+                  flyToLocation={flyToLocation}
                 />
               </div>
 
@@ -542,7 +583,12 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                       <div
                         key={place.id || place.name}
                         className={`lmv-nearby-card ${place.featured ? 'featured' : 'regular'} ${selectedLocation?.id === place.id ? 'selected' : ''}`}
-                        onClick={() => handleLocationSelect(place)}
+                        onClick={() => {
+                          handleLocationSelect(place);
+                          if (place.longitude != null && place.latitude != null) {
+                            setFlyToLocation({ longitude: place.longitude, latitude: place.latitude, zoom: 16, _ts: Date.now() });
+                          }
+                        }}
                       >
                         <div className="lmv-nearby-card-header">
                           <span className={`lmv-nearby-score ${place.tier}`}>{place.score.toFixed(1)}</span>

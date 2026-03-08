@@ -35,15 +35,15 @@ function App() {
     );
   }
 
-  if (!showMap) {
-    return <LaunchScreen onExploreMap={handleExploreMap} />;
-  }
-
   if (isAuthenticated) {
     return <LoggedInMapView onBackToHome={handleBackToHome} initialSearchQuery={exploreParams?.searchQuery} initialFilter={exploreParams?.filter} />;
   }
 
-  return <NonLoginMapView onExploreMap={handleExploreMap} initialSearchQuery={exploreParams?.searchQuery} initialFilter={exploreParams?.filter} />;
+  if (showMap) {
+    return <NonLoginMapView onExploreMap={handleExploreMap} initialSearchQuery={exploreParams?.searchQuery} initialFilter={exploreParams?.filter} />;
+  }
+
+  return <LaunchScreen onExploreMap={handleExploreMap} />;
 }
 
 export default App;

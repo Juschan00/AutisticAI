@@ -128,7 +128,7 @@ function LaunchScreen({ onExploreMap }) {
 
                     <div className="launch-map-card" onClick={() => handleNavigate()} role="button" tabIndex={0}>
                         <div className="launch-map-preview">
-                            <div className="map-bg" style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #e8f4f8, #d1ecf1, #bee5eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, opacity: 0.7 }}>🗺️</div>
+                            <img className="map-bg" src="/assets/images/map-preview.jpg" alt="Sensory map preview" />
                             <div className="map-overlay" />
 
                             <div className="map-nearby-badge">

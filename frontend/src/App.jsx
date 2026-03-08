@@ -40,7 +40,14 @@ function App() {
   }
 
   if (showMap) {
-    return <NonLoginMapView onExploreMap={handleExploreMap} initialSearchQuery={exploreParams?.searchQuery} initialFilter={exploreParams?.filter} />;
+    return (
+      <NonLoginMapView
+        onExploreMap={handleExploreMap}
+        onBackToHome={handleBackToHome}
+        initialSearchQuery={exploreParams?.searchQuery}
+        initialFilter={exploreParams?.filter}
+      />
+    );
   }
 
   return <LaunchScreen onExploreMap={handleExploreMap} />;

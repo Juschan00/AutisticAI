@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import LogoutConfirmation from './LogoutConfirmation';
 import './LaunchScreen.css';
 
@@ -56,10 +57,31 @@ const POPULAR_TAGS = [
     { emoji: '🌿', label: 'Outdoor areas', filter: 'outdoor' },
 ];
 
+const categoryContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: (reducedMotion) => ({
+        opacity: 1,
+        transition: {
+            staggerChildren: reducedMotion ? 0 : 0.06,
+            delayChildren: reducedMotion ? 0 : 0.1,
+        },
+    }),
+};
+
+const categoryCardVariants = (reducedMotion) => ({
+    hidden: { opacity: reducedMotion ? 1 : 0, y: reducedMotion ? 0 : 12 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: reducedMotion ? 0 : 0.35, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
+});
+
 function LaunchScreen({ onExploreMap }) {
     const { loginWithRedirect, isAuthenticated, user } = useAuth0();
     const [searchQuery, setSearchQuery] = useState('');
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const prefersReducedMotion = useReducedMotion();
 
     const handleNavigate = (filter = null, query = '') => {
         if (onExploreMap) {
@@ -183,24 +205,54 @@ function LaunchScreen({ onExploreMap }) {
                     </div>
                 </section>
 
-                <section className="launch-categories">
-                    <h2>Top Sensory-Friendly Categories</h2>
-                    <p className="cat-subtitle">Explore highly-rated spaces tailored for comfort.</p>
+                <section className="launch-categories" aria-label="Sensory-friendly categories">
+                    <motion.h2
+                        className="cat-heading"
+                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
+                        Top Sensory-Friendly Categories
+                    </motion.h2>
+                    <motion.p
+                        className="cat-subtitle"
+                        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.4, delay: prefersReducedMotion ? 0 : 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
+                        Explore highly-rated spaces tailored for comfort.
+                    </motion.p>
 
-                    <div className="cat-grid">
-                        {CATEGORIES.map((cat) => (
-                            <div
+                    <motion.div
+                        className="cat-grid"
+                        variants={categoryContainerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={!!prefersReducedMotion}
+                    >
+                        {CATEGORIES.map((cat, index) => (
+                            <motion.div
                                 key={cat.title}
-                                className="cat-card"
+                                className={`cat-card${cat.highlight ? ' cat-card--highlight' : ''}`}
+                                variants={categoryCardVariants(!!prefersReducedMotion)}
+                                whileHover={prefersReducedMotion ? undefined : {
+                                    y: -4,
+                                    transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] },
+                                }}
+                                whileTap={prefersReducedMotion ? undefined : {
+                                    scale: 0.98,
+                                    transition: { duration: 0.15 },
+                                }}
                                 onClick={() => handleNavigate(cat.filter)}
                                 role="button"
                                 tabIndex={0}
                                 onKeyDown={(e) => e.key === 'Enter' && handleNavigate(cat.filter)}
+                                aria-label={`${cat.title}: ${cat.desc}`}
                             >
                                 <div className="cat-icon">
-                                    <span style={{ fontSize: 24 }}>{cat.emoji}</span>
+                                    <span style={{ fontSize: 24 }} aria-hidden>{cat.emoji}</span>
                                 </div>
-                                <div>
+                                <div className="cat-card-content">
                                     <h3>{cat.title}</h3>
                                     <p>{cat.desc}</p>
                                     <div className="cat-tags">
@@ -211,9 +263,9 @@ function LaunchScreen({ onExploreMap }) {
                                         ))}
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </section>
             </div>
 

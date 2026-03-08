@@ -50,17 +50,6 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
     const [mapLoaded, setMapLoaded] = useState(false);
     const [error, setError] = useState(null);
     const [locationData, setLocationData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [layers, setLayers] = useState({
-        heatmap: true,
-        pins: true,
-    });
-
-    useEffect(() => {
-        if (heatmapEnabled !== undefined) {
-            setLayers((prev) => ({ ...prev, heatmap: heatmapEnabled }));
-        }
-    }, [heatmapEnabled]);
 
     const normalizedHeatmap = useMemo(() => {
         if (!heatmapData?.length) return [];
@@ -104,17 +93,12 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
     }, [baseData, filter]);
 
     useEffect(() => {
-        setLoading(true);
         getLocations()
             .then((res) => {
                 const parsed = parseGeoJSON(res.data);
                 setLocationData(parsed);
-                setLoading(false);
             })
-            .catch(() => {
-                setLocationData([]);
-                setLoading(false);
-            });
+            .catch(() => setLocationData([]));
     }, []);
 
     useEffect(() => {
@@ -182,7 +166,8 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
     const buildLayers = useCallback(() => {
         const active = [];
 
-        if (layers.heatmap) {
+        const showHeatmap = heatmapEnabled !== false;
+        if (showHeatmap) {
             active.push(
                 new HeatmapLayer({
                     id: 'comfort-heatmap',
@@ -205,42 +190,48 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
             );
         }
 
-        if (layers.pins) {
-            active.push(
-                new ScatterplotLayer({
-                    id: 'location-pins',
-                    data: filteredData,
-                    getPosition: (d) => d.position,
-                    getRadius: 60,
-                    getFillColor: (d) => getComfortColor(d.comfort_score),
-                    radiusMinPixels: 8,
-                    radiusMaxPixels: 22,
-                    stroked: true,
-                    getLineColor: [255, 255, 255, 255],
-                    lineWidthMinPixels: 2,
-                    pickable: true,
-                    autoHighlight: true,
-                    highlightColor: [75, 139, 255, 200],
-                    onClick: (info) => {
-                        if (info.object && onLocationSelect) {
-                            onLocationSelect(info.object);
-                        }
+        // Location pins always on by default
+        active.push(
+            new ScatterplotLayer({
+                id: 'location-pins',
+                data: filteredData,
+                getPosition: (d) => d.position,
+                getRadius: 60,
+                getFillColor: (d) => getComfortColor(d.comfort_score),
+                radiusMinPixels: 8,
+                radiusMaxPixels: 22,
+                stroked: true,
+                getLineColor: [255, 255, 255, 255],
+                lineWidthMinPixels: 2,
+                pickable: true,
+                autoHighlight: true,
+                highlightColor: [75, 139, 255, 200],
+                onClick: (info) => {
+                    if (info.object && onLocationSelect) {
+                        onLocationSelect(info.object);
+                    }
+                },
+                transitions: {
+                    getPosition: {
+                        duration: 450,
+                        easing: (t) => t * (2 - t),
                     },
-                })
-            );
-        }
+                    getFillColor: {
+                        duration: 400,
+                        easing: (t) => t * (2 - t),
+                        enter: (color) => [color[0], color[1], color[2], 0],
+                    },
+                },
+            })
+        );
 
         return active;
-    }, [filteredData, layers, onLocationSelect]);
+    }, [filteredData, heatmapEnabled, onLocationSelect]);
 
     useEffect(() => {
         if (!mapLoaded || !overlayRef.current) return;
         overlayRef.current.setProps({ layers: buildLayers() });
     }, [mapLoaded, buildLayers]);
-
-    const toggleLayer = (key) => {
-        setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
 
     if (error) {
         return (
@@ -259,42 +250,6 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
                 ref={mapContainer}
                 style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
             />
-
-            <div style={{
-                position: 'absolute',
-                top: 16,
-                right: 60,
-                zIndex: 10,
-                background: 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(8px)',
-                padding: '12px 16px',
-                borderRadius: 12,
-                fontSize: 13,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                border: '1px solid rgba(0,0,0,0.06)',
-                pointerEvents: 'auto',
-            }}>
-                <div style={{ fontWeight: 600, marginBottom: 8, color: '#0f1720' }}>Layers</div>
-                {loading && <div style={{ color: '#94a3b8', marginBottom: 4 }}>Loading...</div>}
-                {[
-                    { key: 'heatmap', label: 'Comfort Heatmap' },
-                    { key: 'pins', label: 'Location Pins' },
-                ].map(({ key, label }) => (
-                    <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 4, color: '#374151' }}>
-                        <input
-                            type="checkbox"
-                            checked={layers[key]}
-                            onChange={() => toggleLayer(key)}
-                            style={{ accentColor: '#4b8bff' }}
-                        />
-                        {label}
-                    </label>
-                ))}
-                <div style={{ marginTop: 8, color: '#94a3b8', fontSize: 11 }}>
-                    {filteredData.length} locations
-                    {filter && <span> · {filter}</span>}
-                </div>
-            </div>
         </>
     );
 }

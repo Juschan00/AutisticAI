@@ -26,64 +26,166 @@
   margin-top: 10px;
 }
 
-/* Close map button — top left of screen */
-.nlm-close-map-btn {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 20;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #0f172a;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: background 0.15s, box-shadow 0.15s;
-}
-
-.nlm-close-map-btn:hover {
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-.nlm-close-map-btn:focus-visible {
-  outline: 2px solid #4b8bff;
-  outline-offset: 2px;
-}
-
-.nlm-close-map-icon {
-  flex-shrink: 0;
-}
-
-.nlm-close-map-text {
-  white-space: nowrap;
-}
-
 /* ── Left Sidebar (stops above Mapbox logo) ── */
 .nlm-sidebar-left {
   position: absolute;
   top: 16px;
   left: 16px;
-  width: 320px;
+  width: 340px;
   z-index: 10;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 21px;
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(216, 216, 216, 0.35);
   border-radius: 16px;
   box-shadow: 0px 16px 32px rgba(15, 23, 32, 0.08);
-  max-height: calc(100vh - 32px);
+  max-height: calc(100vh - 72px);
+  overflow: hidden;
+  transition: width 250ms ease-in-out;
+}
+
+.nlm-sidebar-left--collapsed {
+  width: 52px;
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: none;
+  box-shadow: none;
+}
+
+.nlm-sidebar-left--collapsed .nlm-logo-row {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left--collapsed .nlm-logo-group {
+  opacity: 0;
+  visibility: hidden;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left .nlm-logo-group {
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left--collapsed .nlm-sidebar-left-body {
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left .nlm-sidebar-left-body {
+  transition: opacity 200ms ease-in-out, visibility 200ms ease-in-out;
+}
+
+.nlm-sidebar-left-header {
+  flex-shrink: 0;
+  padding: 21px 21px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 0;
+}
+
+.nlm-sidebar-left--collapsed .nlm-sidebar-left-header {
+  justify-content: center;
+  padding: 12px 10px;
+  flex-direction: column;
+  gap: 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-hint {
+  display: none;
+}
+
+.nlm-nav-collapse-hint {
+  display: none;
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-btn {
+  transform: translateX(-5px);
+  width: 44px;
+  height: 44px;
+  background: #fff;
+  color: #0f1720;
+  border: 2px solid rgba(15, 23, 32, 0.12);
+  box-shadow: 0 4px 12px rgba(15, 23, 32, 0.15);
+}
+
+/* Collapse / expand button */
+.nlm-nav-collapse-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(15, 23, 32, 0.1);
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(15, 23, 32, 0.08);
+  transition: background-color 200ms ease-in-out, color 200ms ease-in-out, box-shadow 200ms ease-in-out, border-color 200ms ease-in-out;
+}
+
+.nlm-nav-collapse-btn:hover {
+  background: #e2e8f0;
+  color: #0f1720;
+  box-shadow: 0 4px 12px rgba(15, 23, 32, 0.12);
+}
+
+.nlm-nav-collapse-btn:focus-visible {
+  outline: 2px solid #4b8bff;
+  outline-offset: 2px;
+}
+
+.nlm-nav-collapse-arrow {
+  transition: transform 250ms ease-in-out;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.nlm-nav-collapse-btn .nlm-nav-collapse-arrow {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+}
+
+.nlm-sidebar-left--collapsed .nlm-nav-collapse-arrow {
+  transform: rotate(180deg);
+  width: 24px;
+  height: 24px;
+}
+
+.nlm-sidebar-left-body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: 16px 21px 21px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 .nlm-sidebar-left::-webkit-scrollbar {

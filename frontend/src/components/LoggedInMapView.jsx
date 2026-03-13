@@ -731,7 +731,14 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 </div>
               )}
 
-              <div className="lmv-stat-boxes">
+              {reviewCount === 0 ? (
+                <div style={{ padding: '12px 0', color: 'var(--theme-text-muted)', fontSize: 13, border: '1px solid var(--theme-border)', borderRadius: 8, padding: 12, marginTop: 8, background: 'var(--theme-tag-soft)' }}>
+                  <strong style={{ display: 'block', marginBottom: 4, color: 'var(--theme-text)' }}>No visits yet — be the first to check in</strong>
+                  Default category estimates shown below — not real community data.
+                </div>
+              ) : null}
+
+              <div className="lmv-stat-boxes" style={{ opacity: reviewCount === 0 ? 0.4 : 1 }}>
                 <div className="lmv-stat-box">
                   <div className="box-label">Comfort</div>
                   <div className="box-value">{comfortScore}</div>
@@ -772,24 +779,26 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             </div>
 
             {/* Noise through the day */}
-            <div className="lmv-detail-card">
-              <div>
-                <h3 className="lmv-section-title">Noise through the day</h3>
-                <p className="lmv-section-desc">Based on sensory scores for this location.</p>
+            {reviewCount > 0 && (
+              <div className="lmv-detail-card">
+                <div>
+                  <h3 className="lmv-section-title">Noise through the day</h3>
+                  <p className="lmv-section-desc">Based on sensory scores for this location.</p>
+                </div>
+                <div style={{ width: '100%', height: 120 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={noiseChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#edf3f8" />
+                      <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} domain={[0, 5]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="noise" stroke="#ffb3a3" strokeWidth={2} dot={false} name="Noise" />
+                      <Line type="monotone" dataKey="calm" stroke="#6ad6c8" strokeWidth={2} dot={false} name="Calm" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              <div style={{ width: '100%', height: 120 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={noiseChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#edf3f8" />
-                    <XAxis dataKey="time" tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} />
-                    <YAxis tick={{ fontSize: 11, fill: 'var(--theme-text-muted)' }} domain={[0, 5]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="noise" stroke="#ffb3a3" strokeWidth={2} dot={false} name="Noise" />
-                    <Line type="monotone" dataKey="calm" stroke="#6ad6c8" strokeWidth={2} dot={false} name="Calm" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            )}
 
             {/* AI Insight */}
             <div className="lmv-detail-card">
@@ -798,7 +807,11 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 <p className="lmv-section-desc">Only the most important signals are shown.</p>
               </div>
 
-              {aiLoading ? (
+              {reviewCount === 0 ? (
+                <p style={{ color: 'var(--theme-text-muted)', fontSize: 13 }}>
+                  AI insights will appear once this place has been visited.
+                </p>
+              ) : aiLoading ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <SkeletonBlock height={20} />
                   <SkeletonBlock height={8} />

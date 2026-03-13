@@ -221,6 +221,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
 
   // Rating tags
   const ratingTags = (() => {
+    if (reviewCount === 0) return ['No visits yet — be the first'];
     const tags = [];
     const revisit = Math.round(comfortScore / 5 * 100);
     tags.push(`${revisit}% would revisit`);
@@ -511,36 +512,42 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                 </div>
 
                 {/* Score Bars */}
-                <div className="nlm-score-bars">
-                  <div className="nlm-score-row">
-                    <span className="nlm-score-label">Noise</span>
-                    <div className="nlm-score-bar">
-                      <div className="nlm-score-bar-fill" style={{ width: `${(noiseScore / 5) * 100}%` }} />
-                    </div>
-                    <span className="nlm-score-value">{noiseScore.toFixed(1)}</span>
+                {reviewCount === 0 ? (
+                  <div style={{ padding: 12, background: 'var(--theme-tag-soft)', borderRadius: 8, color: 'var(--theme-text-muted)', fontSize: 13, marginTop: 8 }}>
+                    Default category estimates — no community data yet.
                   </div>
-                  <div className="nlm-score-row">
-                    <span className="nlm-score-label">Lighting</span>
-                    <div className="nlm-score-bar">
-                      <div className="nlm-score-bar-fill" style={{ width: `${(lightingScore / 5) * 100}%` }} />
+                ) : (
+                  <div className="nlm-score-bars">
+                    <div className="nlm-score-row">
+                      <span className="nlm-score-label">Noise</span>
+                      <div className="nlm-score-bar">
+                        <div className="nlm-score-bar-fill" style={{ width: `${(noiseScore / 5) * 100}%` }} />
+                      </div>
+                      <span className="nlm-score-value">{noiseScore.toFixed(1)}</span>
                     </div>
-                    <span className="nlm-score-value">{lightingScore.toFixed(1)}</span>
-                  </div>
-                  <div className="nlm-score-row">
-                    <span className="nlm-score-label">Crowds</span>
-                    <div className="nlm-score-bar">
-                      <div className="nlm-score-bar-fill" style={{ width: `${(crowdScore / 5) * 100}%` }} />
+                    <div className="nlm-score-row">
+                      <span className="nlm-score-label">Lighting</span>
+                      <div className="nlm-score-bar">
+                        <div className="nlm-score-bar-fill" style={{ width: `${(lightingScore / 5) * 100}%` }} />
+                      </div>
+                      <span className="nlm-score-value">{lightingScore.toFixed(1)}</span>
                     </div>
-                    <span className="nlm-score-value">{crowdScore.toFixed(1)}</span>
-                  </div>
-                  <div className="nlm-score-row">
-                    <span className="nlm-score-label">Comfort</span>
-                    <div className="nlm-score-bar">
-                      <div className="nlm-score-bar-fill" style={{ width: `${(comfortScore / 5) * 100}%` }} />
+                    <div className="nlm-score-row">
+                      <span className="nlm-score-label">Crowds</span>
+                      <div className="nlm-score-bar">
+                        <div className="nlm-score-bar-fill" style={{ width: `${(crowdScore / 5) * 100}%` }} />
+                      </div>
+                      <span className="nlm-score-value">{crowdScore.toFixed(1)}</span>
                     </div>
-                    <span className="nlm-score-value">{comfortScore.toFixed(1)}</span>
+                    <div className="nlm-score-row">
+                      <span className="nlm-score-label">Comfort</span>
+                      <div className="nlm-score-bar">
+                        <div className="nlm-score-bar-fill" style={{ width: `${(comfortScore / 5) * 100}%` }} />
+                      </div>
+                      <span className="nlm-score-value">{comfortScore.toFixed(1)}</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

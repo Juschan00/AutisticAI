@@ -501,73 +501,86 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
           </div>
         )}
 
+        {reviews.length === 0 && (
+          <div className="spd-sidebar-card" style={{ color: 'var(--theme-text-muted)', fontSize: 13 }}>
+            <h4 style={{ marginBottom: 8 }}>No data yet</h4>
+            <p>Radar chart, comfort breakdown, and time patterns will appear once this place has community visits.</p>
+          </div>
+        )}
+
         {/* Sensory Radar Chart (simplified visual) */}
-        <div className="spd-sidebar-card">
-          <h4>Sensory Radar Chart</h4>
-          <p className="spd-sidebar-desc">Environmental profile overview</p>
-          <div className="spd-radar">
-            <div className="spd-radar-axis">
-              <span className="spd-radar-label top">Noise</span>
-              <span className="spd-radar-label right">Crowds</span>
-              <span className="spd-radar-label bottom">Smell</span>
-              <span className="spd-radar-label left">Lighting</span>
-            </div>
-            <div className="spd-radar-grid">
-              <div className="spd-radar-ring r1"></div>
-              <div className="spd-radar-ring r2"></div>
-              <div className="spd-radar-ring r3"></div>
-              <svg className="spd-radar-shape" viewBox="0 0 100 100">
-                <polygon
-                  points={`50,${50 - (noiseScore / 5) * 40} ${50 + (crowdScore / 5) * 40},50 50,${50 + (comfortScore / 5) * 40} ${50 - (lightScore / 5) * 40},50`}
-                  fill="rgba(75, 139, 255, 0.2)"
-                  stroke="var(--theme-accent)"
-                  strokeWidth="2"
-                />
-              </svg>
+        {reviews.length > 0 && (
+          <div className="spd-sidebar-card">
+            <h4>Sensory Radar Chart</h4>
+            <p className="spd-sidebar-desc">Environmental profile overview</p>
+            <div className="spd-radar">
+              <div className="spd-radar-axis">
+                <span className="spd-radar-label top">Noise</span>
+                <span className="spd-radar-label right">Crowds</span>
+                <span className="spd-radar-label bottom">Smell</span>
+                <span className="spd-radar-label left">Lighting</span>
+              </div>
+              <div className="spd-radar-grid">
+                <div className="spd-radar-ring r1"></div>
+                <div className="spd-radar-ring r2"></div>
+                <div className="spd-radar-ring r3"></div>
+                <svg className="spd-radar-shape" viewBox="0 0 100 100">
+                  <polygon
+                    points={`50,${50 - (noiseScore / 5) * 40} ${50 + (crowdScore / 5) * 40},50 50,${50 + (comfortScore / 5) * 40} ${50 - (lightScore / 5) * 40},50`}
+                    fill="rgba(75, 139, 255, 0.2)"
+                    stroke="var(--theme-accent)"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Comfort Score Breakdown */}
-        <div className="spd-sidebar-card">
-          <h4>Comfort Score Breakdown</h4>
-          <p className="spd-sidebar-desc">How we calculated your {(place.score10 ?? comfortScore).toFixed?.(1) || '—'} score</p>
-          <div className="spd-breakdown">
-            <div className="spd-bd-row">
-              <span>Noise Impact ({noisePct}%)</span>
-              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${noisePct}%`, background: 'var(--theme-accent)' }} /></div>
-            </div>
-            <div className="spd-bd-row">
-              <span>Crowds Impact ({crowdPct}%)</span>
-              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${crowdPct}%`, background: 'var(--theme-accent-soft)' }} /></div>
-            </div>
-            <div className="spd-bd-row">
-              <span>Lighting Impact ({lightPct}%)</span>
-              <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${lightPct}%`, background: '#a78bfa' }} /></div>
+        {reviews.length > 0 && (
+          <div className="spd-sidebar-card">
+            <h4>Comfort Score Breakdown</h4>
+            <p className="spd-sidebar-desc">How we calculated your {(place.score10 ?? comfortScore).toFixed?.(1) || '—'} score</p>
+            <div className="spd-breakdown">
+              <div className="spd-bd-row">
+                <span>Noise Impact ({noisePct}%)</span>
+                <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${noisePct}%`, background: 'var(--theme-accent)' }} /></div>
+              </div>
+              <div className="spd-bd-row">
+                <span>Crowds Impact ({crowdPct}%)</span>
+                <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${crowdPct}%`, background: 'var(--theme-accent-soft)' }} /></div>
+              </div>
+              <div className="spd-bd-row">
+                <span>Lighting Impact ({lightPct}%)</span>
+                <div className="spd-bd-bar"><div className="spd-bd-fill" style={{ width: `${lightPct}%`, background: '#a78bfa' }} /></div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Sensory Time Pattern */}
-        <div className="spd-sidebar-card">
-          <h4>Sensory Time Pattern</h4>
-          <p className="spd-sidebar-desc">Activity levels throughout the day</p>
-          <div className="spd-time-chart">
-            {['6am', '12pm', '6pm', '10pm'].map((t, i) => {
-              const heights = [30, 60, 80, 45];
-              return (
-                <div key={t} className="spd-time-bar-group">
-                  <div className="spd-time-bars">
-                    <div className="spd-time-bar noise" style={{ height: `${heights[i] * 0.8}%` }} />
-                    <div className="spd-time-bar crowd" style={{ height: `${heights[i]}%` }} />
-                    <div className="spd-time-bar light" style={{ height: `${heights[i] * 0.6}%` }} />
+        {reviews.length > 0 && (
+          <div className="spd-sidebar-card">
+            <h4>Sensory Time Pattern</h4>
+            <p className="spd-sidebar-desc">Activity levels throughout the day</p>
+            <div className="spd-time-chart">
+              {['6am', '12pm', '6pm', '10pm'].map((t, i) => {
+                const heights = [30, 60, 80, 45];
+                return (
+                  <div key={t} className="spd-time-bar-group">
+                    <div className="spd-time-bars">
+                      <div className="spd-time-bar noise" style={{ height: `${heights[i] * 0.8}%` }} />
+                      <div className="spd-time-bar crowd" style={{ height: `${heights[i]}%` }} />
+                      <div className="spd-time-bar light" style={{ height: `${heights[i] * 0.6}%` }} />
+                    </div>
+                    <span className="spd-time-label">{t}</span>
                   </div>
-                  <span className="spd-time-label">{t}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Remove button */}
         <button type="button" className="spd-remove-btn" onClick={handleRemove} disabled={removing}>

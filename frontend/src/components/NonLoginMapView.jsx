@@ -303,6 +303,19 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           heatmapData={heatmapData}
         />
       </div>
+      
+      <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 9999 }}>
+        <button
+          className="nlm-theme-btn nlm-theme-btn--text"
+          onClick={() => setHeatmapOn((prev) => !prev)}
+          style={{ cursor: 'pointer', border: heatmapOn ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Heatmap
+        </button>
+      </div>
 
       {/* Left Sidebar */}
       <aside

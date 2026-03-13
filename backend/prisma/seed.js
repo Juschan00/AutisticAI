@@ -8,17 +8,45 @@ import {
     analyzeWithGemini,
 } from "../src/lib/placesService.js";
 
+// ─── Safety Guard ────────────────────────────────────────────
+if (process.env.NODE_ENV === "production") {
+    throw new Error("❌ Seed script cannot be run in production. Aborting.");
+}
+
 const SEARCH_QUERIES = [
-    "libraries in Waterloo Ontario",
-    "parks in Waterloo Ontario",
-    "cafes in Waterloo Ontario",
-    "museums in Kitchener Waterloo Ontario",
-    "restaurants in Waterloo Ontario",
-    "community centres in Kitchener Ontario",
-    "bookstores in Waterloo Ontario",
-    "shopping in Kitchener Waterloo Ontario",
-    "quiet places in Waterloo Ontario",
-    "nature trails in Kitchener Waterloo Ontario",
+    // Toronto core
+    "libraries in Toronto Ontario",
+    "parks in Toronto Ontario",
+    "cafes in downtown Toronto Ontario",
+    "museums in Toronto Ontario",
+    "quiet places in Toronto Ontario",
+
+    // Inner suburbs / neighbourhoods
+    "nature trails in Scarborough Ontario",
+    "community centres in Etobicoke Ontario",
+    "bookstores in Toronto Ontario",
+
+    // Mississauga
+    "libraries in Mississauga Ontario",
+    "parks in Mississauga Ontario",
+    "cafes in Mississauga Ontario",
+    "community centres in Mississauga Ontario",
+
+    // Brampton
+    "libraries in Brampton Ontario",
+    "parks in Brampton Ontario",
+    "quiet cafes in Brampton Ontario",
+
+    // Markham / Richmond Hill / Vaughan
+    "libraries in Markham Ontario",
+    "parks in Markham Ontario",
+    "cafes in Richmond Hill Ontario",
+    "community centres in Vaughan Ontario",
+
+    // Oakville / Burlington (west GTA)
+    "libraries in Oakville Ontario",
+    "parks in Burlington Ontario",
+    "nature trails in Oakville Ontario",
 ];
 
 // ─── Main Seed Flow ──────────────────────────────────────────
@@ -51,8 +79,8 @@ for (const query of SEARCH_QUERIES) {
     await new Promise((r) => setTimeout(r, 300));
 }
 
-console.log(`\n  Found ${allPlaces.length} unique places. Taking top 30...\n`);
-const selectedPlaces = allPlaces.slice(0, 30);
+console.log(`\n  Found ${allPlaces.length} unique places. Taking top 10...\n`);
+const selectedPlaces = allPlaces.slice(0, 10);
 
 // Step 2: Get details + reviews for each place
 console.log("📝 Fetching details and reviews for each place...\n");
@@ -112,11 +140,22 @@ for (const place of placesWithDetails) {
 
         const analysis = await analyzeWithGemini(place.name, place.category, place.reviews);
 
+        // Guard against malformed Gemini response
+        if (!analysis || !Array.isArray(analysis.reviews)) {
+            console.log(`  ⚠️  ${place.name} — Gemini returned unexpected structure, skipping`);
+            continue;
+        }
+
+        // Photo upload is non-critical — don't let it kill the whole insert
         let imageUrl = null;
         if (place.photoReference) {
             console.log(`  📸 Uploading photo for ${place.name}...`);
-            imageUrl = await uploadPlacePhoto(place.photoReference);
-            await new Promise((r) => setTimeout(r, 500));
+            try {
+                imageUrl = await uploadPlacePhoto(place.photoReference);
+                await new Promise((r) => setTimeout(r, 500));
+            } catch (photoErr) {
+                console.log(`  ⚠️  Photo upload failed for ${place.name}: ${photoErr.message} — continuing without photo`);
+            }
         }
 
         const location = await prisma.location.create({
@@ -158,9 +197,9 @@ for (const place of placesWithDetails) {
         }
 
         successCount++;
-        console.log(`  ✅ ${place.name} — scores: noise=${analysis.noiseScore}, light=${analysis.lightingScore}, crowd=${analysis.crowdScore}, comfort=${analysis.comfortScore}${imageUrl ? ' 📷' : ' (no photo)'}`);
+        console.log(`  ✅ ${place.name} — scores: noise=${analysis.noiseScore}, light=${analysis.lightingScore}, crowd=${analysis.crowdScore}, comfort=${analysis.comfortScore}${imageUrl ? " 📷" : " (no photo)"}`);
 
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1500));
     } catch (err) {
         console.log(`  ❌ Failed for ${place.name}: ${err.message}`);
     }

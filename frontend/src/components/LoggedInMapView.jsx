@@ -58,6 +58,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [searchResults, setSearchResults] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState(initialFilter ?? null);
+  const [heatmapOn, setHeatmapOn] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const [heatmapData, setHeatmapData] = useState([]);
@@ -561,6 +562,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   selectedLocation={selectedLocation}
                   flyToLocation={flyToLocation}
                   heatmapData={heatmapData}
+                  heatmapEnabled={heatmapOn}
                 />
               </div>
 
@@ -579,14 +581,26 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 </span>
               </div>
 
-              <button
-                className="lmv-map-time-filter"
-                onClick={() => setActiveFilter((prev) => prev === 'before-noon' ? null : 'before-noon')}
-                style={{ cursor: 'pointer', border: activeFilter === 'before-noon' ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0f1720" strokeWidth="1.3"/><path d="M8 4V8L10.5 9.5" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Before 11am
-              </button>
+              <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 9999 }}>
+                <button
+                  className="lmv-map-time-filter"
+                  onClick={() => setActiveFilter((prev) => prev === 'before-noon' ? null : 'before-noon')}
+                  style={{ cursor: 'pointer', border: activeFilter === 'before-noon' ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0f1720" strokeWidth="1.3"/><path d="M8 4V8L10.5 9.5" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Before 11am
+                </button>
+                <button
+                  className="lmv-map-time-filter"
+                  onClick={() => setHeatmapOn((prev) => !prev)}
+                  style={{ cursor: 'pointer', border: heatmapOn ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Heatmap
+                </button>
+              </div>
 
               <div className="lmv-nearby-overlay">
                 <span className="lmv-nearby-label">Top nearby places</span>

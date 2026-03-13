@@ -423,10 +423,10 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
                 <div className="spd-community-left">
                   <div className="spd-overall-rating">
                     <span className="spd-rating-big">{avgRating.toFixed(1)}</span>
-                    <span className="spd-rating-of">out of 5</span>
+                    <span className="spd-rating-of">out of 10</span>
                   </div>
                   <div className="spd-stars">
-                    {[1, 2, 3, 4, 5].map((s) => (
+                    {[2, 4, 6, 8, 10].map((s) => (
                       <svg key={s} width="18" height="18" viewBox="0 0 18 18" fill={s <= Math.round(avgRating) ? '#f59e0b' : '#e5e7eb'}>
                         <path d="M9 1.5l2.47 5.01 5.53.8-4 3.9.94 5.49L9 14.01 4.06 16.7 5 11.21l-4-3.9 5.53-.8L9 1.5z"/>
                       </svg>
@@ -435,10 +435,10 @@ function SavedPlaceDetail({ place, userProfile, userCoords, onBack, onRemove }) 
                   <p className="spd-rating-hint">Most visitors describe it as comfortable and easy to plan around.</p>
                 </div>
                 <div className="spd-community-right">
-                  <div className="spd-bar-row"><span className="spd-bar-label">Quietness</span><div className="spd-bar-track"><div className="spd-bar-fill blue" style={{ width: `${((5 - noiseScore) / 5) * 100}%` }} /></div><span className="spd-bar-val">{(5 - noiseScore).toFixed(1)} / 5</span></div>
-                  <div className="spd-bar-row"><span className="spd-bar-label">Crowding comfort</span><div className="spd-bar-track"><div className="spd-bar-fill teal" style={{ width: `${((5 - crowdScore) / 5) * 100}%` }} /></div><span className="spd-bar-val">{(5 - crowdScore).toFixed(1)} / 5</span></div>
-                  <div className="spd-bar-row"><span className="spd-bar-label">Lighting comfort</span><div className="spd-bar-track"><div className="spd-bar-fill purple" style={{ width: `${((5 - lightScore) / 5) * 100}%` }} /></div><span className="spd-bar-val">{(5 - lightScore).toFixed(1)} / 5</span></div>
-                  <div className="spd-bar-row"><span className="spd-bar-label">Predictability</span><div className="spd-bar-track"><div className="spd-bar-fill green" style={{ width: `${(comfortScore / 5) * 100}%` }} /></div><span className="spd-bar-val">{comfortScore.toFixed(1)} / 5</span></div>
+                  <div className="spd-bar-row"><span className="spd-bar-label">Quietness</span><div className="spd-bar-track"><div className="spd-bar-fill blue" style={{ width: `${((10 - noiseScore) / 10) * 100}%` }} /></div><span className="spd-bar-val">{(10 - noiseScore).toFixed(1)} / 10</span></div>
+                  <div className="spd-bar-row"><span className="spd-bar-label">Crowding comfort</span><div className="spd-bar-track"><div className="spd-bar-fill teal" style={{ width: `${((10 - crowdScore) / 10) * 100}%` }} /></div><span className="spd-bar-val">{(10 - crowdScore).toFixed(1)} / 10</span></div>
+                  <div className="spd-bar-row"><span className="spd-bar-label">Lighting comfort</span><div className="spd-bar-track"><div className="spd-bar-fill purple" style={{ width: `${((10 - lightScore) / 10) * 100}%` }} /></div><span className="spd-bar-val">{(10 - lightScore).toFixed(1)} / 10</span></div>
+                  <div className="spd-bar-row"><span className="spd-bar-label">Predictability</span><div className="spd-bar-track"><div className="spd-bar-fill green" style={{ width: `${(comfortScore / 10) * 100}%` }} /></div><span className="spd-bar-val">{comfortScore.toFixed(1)} / 10</span></div>
                 </div>
               </div>
             ) : (

@@ -1,38 +1,19 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import mapboxgl from 'mapbox-gl';
-import { MapboxOverlay } from '@deck.gl/mapbox';
+import { useState, useMemo } from 'react';
+import Map from 'react-map-gl/mapbox';
+import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
-import { getLocations } from '../services/api';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-const INITIAL_VIEW = {
-    longitude: -80.52,
-    latitude: 43.46,
-    zoom: 13,
+const INITIAL_VIEW_STATE = {
+    longitude: -79.3832,
+    latitude: 43.6532,
+    zoom: 12,
     pitch: 40,
     bearing: -10,
 };
-
-function parseGeoJSON(geojson) {
-    if (!geojson?.features) return [];
-    return geojson.features.map((f) => {
-        const p = f.properties;
-        return {
-            position: f.geometry.coordinates,
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            noise_score: p.noiseScore,
-            lighting_score: p.lightingScore,
-            crowd_score: p.crowdScore,
-            comfort_score: p.comfortScore,
-            review_count: p.reviewCount,
-        };
-    });
-}
 
 function getComfortColor(score) {
     const s = Math.max(0, Math.min(5, score || 2.5));
@@ -43,13 +24,8 @@ function getComfortColor(score) {
     return [r, g, b, 220];
 }
 
-function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, heatmapData, flyToLocation }) {
-    const mapContainer = useRef(null);
-    const mapRef = useRef(null);
-    const overlayRef = useRef(null);
-    const [mapLoaded, setMapLoaded] = useState(false);
-    const [error, setError] = useState(null);
-    const [locationData, setLocationData] = useState([]);
+export default function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, heatmapData, flyToLocation }) {
+    const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
 
     const normalizedHeatmap = useMemo(() => {
         if (!heatmapData?.length) return [];
@@ -67,10 +43,14 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
     }, [heatmapData]);
 
     const baseData = useMemo(() => {
-        if (searchResultsGeoJSON != null) return parseGeoJSON(searchResultsGeoJSON);
-        if (normalizedHeatmap.length > 0) return normalizedHeatmap;
-        return locationData;
-    }, [locationData, searchResultsGeoJSON, normalizedHeatmap]);
+        if (searchResultsGeoJSON && searchResultsGeoJSON.features) {
+            return searchResultsGeoJSON.features.map(f => ({
+                position: f.geometry.coordinates,
+                ...f.properties
+            }));
+        }
+        return normalizedHeatmap;
+    }, [searchResultsGeoJSON, normalizedHeatmap]);
 
     const filteredData = useMemo(() => {
         let data = baseData;
@@ -78,180 +58,62 @@ function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnable
             const f = filter.toLowerCase();
             data = data.filter((d) => {
                 const cat = (d.category || '').toLowerCase();
-                const name = (d.name || '').toLowerCase();
-                if (f === 'quiet' || f === 'quiet-now') return d.noise_score < 2;
+                if (f === 'quiet-now') return d.noise_score < 2;
                 if (f === 'before-noon') return d.noise_score < 2.5;
                 if (f === 'low-crowds') return d.crowd_score < 2;
-                if (f === 'soft-lighting' || f === 'cafe') return d.lighting_score < 3 || cat.includes('cafe');
-                if (f === 'outdoor' || f === 'park') return cat.includes('park') || cat.includes('outdoor') || name.includes('park');
-                if (f === 'library') return d.noise_score <= 3 || cat.includes('library');
-                if (f === 'museum') return cat.includes('museum') || name.includes('museum');
                 return true;
             });
         }
         return data;
     }, [baseData, filter]);
 
-    useEffect(() => {
-        getLocations()
-            .then((res) => {
-                const parsed = parseGeoJSON(res.data);
-                setLocationData(parsed);
-            })
-            .catch(() => setLocationData([]));
-    }, []);
-
-    useEffect(() => {
-        if (mapRef.current) return;
-
-        try {
-            mapboxgl.accessToken = MAPBOX_TOKEN;
-
-            const map = new mapboxgl.Map({
-                container: mapContainer.current,
-                style: 'mapbox://styles/mapbox/light-v11',
-                center: [INITIAL_VIEW.longitude, INITIAL_VIEW.latitude],
-                zoom: INITIAL_VIEW.zoom,
-                pitch: INITIAL_VIEW.pitch,
-                bearing: INITIAL_VIEW.bearing,
-                antialias: true,
-            });
-
-            mapRef.current = map;
-
-            map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-            map.addControl(new mapboxgl.GeolocateControl({
-                positionOptions: { enableHighAccuracy: true },
-                trackUserLocation: true,
-            }));
-
-            const overlay = new MapboxOverlay({
-                interleaved: true,
-                layers: [],
-            });
-            map.addControl(overlay);
-            overlayRef.current = overlay;
-
-            map.on('load', () => setMapLoaded(true));
-            map.on('error', (e) => {
-                console.error('[MapView] Mapbox error:', e);
-                setError('Map failed to load. Check your Mapbox token.');
-            });
-
-        } catch (err) {
-            setError(err.message);
-        }
-
-        return () => {
-            if (mapRef.current) {
-                mapRef.current.remove();
-                mapRef.current = null;
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!mapRef.current || !flyToLocation) return;
-        const { longitude, latitude, zoom } = flyToLocation;
-        if (longitude == null || latitude == null) return;
-        mapRef.current.flyTo({
-            center: [longitude, latitude],
-            zoom: zoom ?? 16,
-            pitch: 45,
-            duration: 1800,
-            essential: true,
-        });
-    }, [flyToLocation]);
-
-    const buildLayers = useCallback(() => {
-        const active = [];
-
-        const showHeatmap = heatmapEnabled !== false;
-        if (showHeatmap) {
-            active.push(
-                new HeatmapLayer({
-                    id: 'comfort-heatmap',
-                    data: filteredData,
-                    getPosition: (d) => d.position,
-                    getWeight: (d) => d.comfort_score || 2.5,
-                    radiusPixels: 100,
-                    intensity: 1.8,
-                    threshold: 0.02,
-                    colorRange: [
-                        [255, 77, 77, 180],
-                        [255, 165, 0, 200],
-                        [255, 230, 77, 200],
-                        [144, 238, 144, 220],
-                        [34, 197, 94, 240],
-                        [16, 150, 72, 255],
-                    ],
-                    pickable: false,
-                })
-            );
-        }
-
-        // Location pins always on by default
-        active.push(
-            new ScatterplotLayer({
-                id: 'location-pins',
-                data: filteredData,
-                getPosition: (d) => d.position,
-                getRadius: 60,
-                getFillColor: (d) => getComfortColor(d.comfort_score),
-                radiusMinPixels: 8,
-                radiusMaxPixels: 22,
-                stroked: true,
-                getLineColor: [255, 255, 255, 255],
-                lineWidthMinPixels: 2,
-                pickable: true,
-                autoHighlight: true,
-                highlightColor: [75, 139, 255, 200],
-                onClick: (info) => {
-                    if (info.object && onLocationSelect) {
-                        onLocationSelect(info.object);
-                    }
-                },
-                transitions: {
-                    getPosition: {
-                        duration: 450,
-                        easing: (t) => t * (2 - t),
-                    },
-                    getFillColor: {
-                        duration: 400,
-                        easing: (t) => t * (2 - t),
-                        enter: (color) => [color[0], color[1], color[2], 0],
-                    },
-                },
-            })
-        );
-
-        return active;
-    }, [filteredData, heatmapEnabled, onLocationSelect]);
-
-    useEffect(() => {
-        if (!mapLoaded || !overlayRef.current) return;
-        overlayRef.current.setProps({ layers: buildLayers() });
-    }, [mapLoaded, buildLayers]);
-
-    if (error) {
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#ef4444', padding: 40 }}>
-                <div>
-                    <h2 style={{ margin: 0 }}>Map Error</h2>
-                    <p>{error}</p>
-                </div>
-            </div>
-        );
-    }
+    const layers = [
+        heatmapEnabled && new HeatmapLayer({
+            id: 'comfort-heatmap',
+            data: filteredData,
+            getPosition: d => d.position,
+            getWeight: d => Math.pow((d.comfort_score || 2.5), 2), // Exponential weight for calm places
+            intensity: 8,
+            radiusPixels: 120,
+            threshold: 0.02,
+            colorRange: [
+                [255, 230, 230], // Very faint red
+                [255, 204, 153], // Light orange
+                [255, 240, 153], // Light yellow
+                [204, 255, 204], // Pale green
+                [153, 255, 153], // Soft green
+                [102, 255, 178], // Bright mint (very calm)
+            ]
+        }),
+        new ScatterplotLayer({
+            id: 'location-pins',
+            data: filteredData,
+            getPosition: d => d.position,
+            getFillColor: d => getComfortColor(d.comfort_score),
+            getRadius: 60,
+            radiusMinPixels: 8,
+            radiusMaxPixels: 22,
+            stroked: true,
+            getLineColor: [255, 255, 255, 255],
+            lineWidthMinPixels: 2,
+            pickable: true,
+            onClick: info => info.object && onLocationSelect?.(info.object)
+        })
+    ].filter(Boolean);
 
     return (
-        <>
-            <div
-                ref={mapContainer}
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        <DeckGL
+            initialViewState={flyToLocation ? { ...viewState, longitude: flyToLocation.longitude, latitude: flyToLocation.latitude, zoom: flyToLocation.zoom || 16 } : viewState}
+            onViewStateChange={({ viewState }) => setViewState(viewState)}
+            controller={true}
+            layers={layers}
+            getTooltip={({ object }) => object && object.name}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        >
+            <Map
+                mapStyle="mapbox://styles/mapbox/light-v11"
+                mapboxAccessToken={MAPBOX_TOKEN}
             />
-        </>
+        </DeckGL>
     );
 }
-
-export default MapView;

@@ -9,6 +9,7 @@ import SavedPlaces from './SavedPlaces';
 import SensoryProfile from './SensoryProfile';
 import Settings from './Settings';
 import LogoutConfirmation from './LogoutConfirmation';
+import SubmitReview from './SubmitReview'; // NEW
 import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
 import './LoggedInMapView.css';
 
@@ -34,11 +35,11 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 function NavIcon({ type, active }) {
   const color = active ? 'var(--theme-accent)' : 'var(--theme-text)';
   const icons = {
-    map: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 4.5L6.5 1.5L11.5 4.5L16.5 1.5V13.5L11.5 16.5L6.5 13.5L1.5 16.5V4.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M6.5 1.5V13.5" stroke={color} strokeWidth="1.5"/><path d="M11.5 4.5V16.5" stroke={color} strokeWidth="1.5"/></svg>,
-    grid: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="10.5" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="2.25" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/><rect x="10.5" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5"/></svg>,
-    bookmark: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M14.25 15.75L9 12L3.75 15.75V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H12.75C13.1478 2.25 13.5294 2.40804 13.8107 2.68934C14.092 2.97064 14.25 3.35218 14.25 3.75V15.75Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-    sliders: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><line x1="3" y1="6" x2="15" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><line x1="3" y1="12" x2="15" y2="12" stroke={color} strokeWidth="1.5" strokeLinecap="round"/><circle cx="6.75" cy="6" r="1.5" fill="white" stroke={color} strokeWidth="1.5"/><circle cx="11.25" cy="12" r="1.5" fill="white" stroke={color} strokeWidth="1.5"/></svg>,
-    settings: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.25" stroke={color} strokeWidth="1.5"/><path d="M14.55 11.25a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-1.42 3.42 2 2 0 01-1.41-.59l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V16.5a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-3.42-1.42 2 2 0 01.59-1.41l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H1.5a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82L2.71 2.71a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H7.5a1.65 1.65 0 001-1.51V1.5a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.08a1.65 1.65 0 001.51 1h.17a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    map: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M1.5 4.5L6.5 1.5L11.5 4.5L16.5 1.5V13.5L11.5 16.5L6.5 13.5L1.5 16.5V4.5Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /><path d="M6.5 1.5V13.5" stroke={color} strokeWidth="1.5" /><path d="M11.5 4.5V16.5" stroke={color} strokeWidth="1.5" /></svg>,
+    grid: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.25" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5" /><rect x="10.5" y="2.25" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5" /><rect x="2.25" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5" /><rect x="10.5" y="10.5" width="5.25" height="5.25" rx="1" stroke={color} strokeWidth="1.5" /></svg>,
+    bookmark: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M14.25 15.75L9 12L3.75 15.75V3.75C3.75 3.35218 3.90804 2.97064 4.18934 2.68934C4.47064 2.40804 4.85218 2.25 5.25 2.25H12.75C13.1478 2.25 13.5294 2.40804 13.8107 2.68934C14.092 2.97064 14.25 3.35218 14.25 3.75V15.75Z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    sliders: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><line x1="3" y1="6" x2="15" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round" /><line x1="3" y1="12" x2="15" y2="12" stroke={color} strokeWidth="1.5" strokeLinecap="round" /><circle cx="6.75" cy="6" r="1.5" fill="white" stroke={color} strokeWidth="1.5" /><circle cx="11.25" cy="12" r="1.5" fill="white" stroke={color} strokeWidth="1.5" /></svg>,
+    settings: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.25" stroke={color} strokeWidth="1.5" /><path d="M14.55 11.25a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-1.42 3.42 2 2 0 01-1.41-.59l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V16.5a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-3.42-1.42 2 2 0 01.59-1.41l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H1.5a2 2 0 010-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82L2.71 2.71a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H7.5a1.65 1.65 0 001-1.51V1.5a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.08a1.65 1.65 0 001.51 1h.17a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>,
   };
   return icons[type] || null;
 }
@@ -60,6 +61,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [activeFilter, setActiveFilter] = useState(initialFilter ?? null);
   const [heatmapOn, setHeatmapOn] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false); // NEW
 
   const [heatmapData, setHeatmapData] = useState([]);
   const [rankings, setRankings] = useState([]);
@@ -81,13 +83,13 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     if (!Array.isArray(data) || data.length === 0) return;
     const nearby = coords
       ? data.filter((l) => {
-          if (l.latitude == null || l.longitude == null) return false;
-          const R = 6371;
-          const dLat = ((l.latitude - coords.lat) * Math.PI) / 180;
-          const dLon = ((l.longitude - coords.lng) * Math.PI) / 180;
-          const a = Math.sin(dLat / 2) ** 2 + Math.cos((coords.lat * Math.PI) / 180) * Math.cos((l.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-          return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) < 10;
-        })
+        if (l.latitude == null || l.longitude == null) return false;
+        const R = 6371;
+        const dLat = ((l.latitude - coords.lat) * Math.PI) / 180;
+        const dLon = ((l.longitude - coords.lng) * Math.PI) / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos((coords.lat * Math.PI) / 180) * Math.cos((l.latitude * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) < 10;
+      })
       : data;
     const calmCount = nearby.filter((l) => (l.comfortScore ?? 0) > 3.5).length;
     const avgNoise = nearby.length > 0 ? nearby.reduce((a, b) => a + (b.noiseScore ?? 0), 0) / nearby.length : 0;
@@ -113,7 +115,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           buildSnapshot(data, null);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     getRankings()
       .then((res) => {
@@ -138,7 +140,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           })));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -149,15 +151,15 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
       try {
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
         if (token) {
-          getLocationMatch().then((res) => setMatchScores(res.data || [])).catch(() => {});
-          getSensoryProfile().then((res) => setUserProfile(res.data || null)).catch(() => {});
+          getLocationMatch().then((res) => setMatchScores(res.data || [])).catch(() => { });
+          getSensoryProfile().then((res) => setUserProfile(res.data || null)).catch(() => { });
           getSavedPlaces()
             .then((res) => {
               const list = Array.isArray(res.data) ? res.data : [];
               setSavedPlacesList(list);
               setSavedPlaceIds(new Set(list.map((s) => s.location?.id || s.locationId).filter(Boolean)));
             })
-            .catch(() => {});
+            .catch(() => { });
         }
       } catch { /* not authenticated */ }
     };
@@ -181,6 +183,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     setAiInsights(null);
     setLocationDetail(null);
     setAvgRating(null);
+    setShowReviewForm(false); // NEW — close review form when switching locations
 
     const locId = selectedLocation.id;
     if (!locId) return;
@@ -194,7 +197,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           setAvgRating(avg);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     const fetchAI = async () => {
       try {
@@ -252,7 +255,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
         setSavedPlacesList(list);
         setSavedPlaceIds(new Set(list.map((s) => s.location?.id || s.locationId).filter(Boolean)));
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleToggleSaved = async () => {
@@ -442,7 +445,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             <p>{userProfile ? `Noise tol: ${userProfile.noiseTolerance ?? '—'}` : 'Loading profile…'}</p>
           </div>
           <div className="lmv-nav-user-chevron">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </div>
         </div>
       </nav>
@@ -540,12 +543,12 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
               <div className="lmv-snapshot-tags">
                 {snapshot && snapshot.noiseTrend === 'Low' && (
                   <span className="lmv-tag green">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2"/><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2" /><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     Low noise nearby
                   </span>
                 )}
                 <span className="lmv-tag gray">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2"/><path d="M7 3.5V7L9.25 8.25" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2" /><path d="M7 3.5V7L9.25 8.25" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Best: {snapshot?.bestWindow ?? '—'}
                 </span>
               </div>
@@ -566,17 +569,41 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 />
               </div>
 
+              {/* SubmitReview slide-in — layered over the map */}
+              {showReviewForm && selectedLocation && (
+                <SubmitReview
+                  location={selectedLocation}
+                  onClose={() => setShowReviewForm(false)}
+                  onSubmitted={() => {
+                    setShowReviewForm(false);
+                    // Re-fetch so review count + scores update
+                    if (selectedLocation?.id) {
+                      getLocationById(selectedLocation.id)
+                        .then((res) => {
+                          const detail = res.data;
+                          setLocationDetail(detail);
+                          if (detail?.reviews?.length > 0) {
+                            const avg = detail.reviews.reduce((a, b) => a + (b.rating || 0), 0) / detail.reviews.length;
+                            setAvgRating(avg);
+                          }
+                        })
+                        .catch(() => { });
+                    }
+                  }}
+                />
+              )}
+
               <div className="lmv-map-legend">
                 <span className="lmv-legend-chip calm">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2"/><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2" /><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Calm
                 </span>
                 <span className="lmv-legend-chip moderate">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#4a2a00" strokeWidth="1.2"/><circle cx="7" cy="7" r="1.5" fill="#4a2a00"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#4a2a00" strokeWidth="1.2" /><circle cx="7" cy="7" r="1.5" fill="#4a2a00" /></svg>
                   Moderate
                 </span>
                 <span className="lmv-legend-chip overwhelming">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#4a0f00" strokeWidth="1.2"/><path d="M5 5l4 4M9 5l-4 4" stroke="#4a0f00" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#4a0f00" strokeWidth="1.2" /><path d="M5 5l4 4M9 5l-4 4" stroke="#4a0f00" strokeWidth="1.2" strokeLinecap="round" /></svg>
                   Overwhelming
                 </span>
               </div>
@@ -587,7 +614,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   onClick={() => setActiveFilter((prev) => prev === 'before-noon' ? null : 'before-noon')}
                   style={{ cursor: 'pointer', border: activeFilter === 'before-noon' ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)' }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0f1720" strokeWidth="1.3"/><path d="M8 4V8L10.5 9.5" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#0f1720" strokeWidth="1.3" /><path d="M8 4V8L10.5 9.5" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Before 11am
                 </button>
                 <button
@@ -596,7 +623,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   style={{ cursor: 'pointer', border: heatmapOn ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   Heatmap
                 </button>
@@ -641,7 +668,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             {/* Bottom Search Bar */}
             <form className="lmv-bottom-bar" onSubmit={handleSearchSubmit}>
               <div className="lmv-search-pill">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8.25" cy="8.25" r="4.5" stroke="#6b7280" strokeWidth="1.5"/><path d="M15.75 15.75L11.5 11.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="8.25" cy="8.25" r="4.5" stroke="#6b7280" strokeWidth="1.5" /><path d="M15.75 15.75L11.5 11.5" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" /></svg>
                 <input
                   type="text"
                   placeholder="Search places or sensory tags"
@@ -657,11 +684,11 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
               )}
               <div className="lmv-bottom-actions">
                 <button type="button" className="lmv-btn-outline" onClick={handleCalmRoute}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8.67 3.33L14 8l-5.33 4.67" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8.67 3.33L14 8l-5.33 4.67" stroke="#0f1720" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Calm route
                 </button>
                 <button type="button" className="lmv-btn-primary" onClick={handlePersonalize}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   Personalize
                 </button>
               </div>
@@ -703,12 +730,12 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                         <span className="lmv-save-loading">…</span>
                       ) : savedPlaceIds.has(selectedLocation.id) ? (
                         <>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" fill="currentColor"/></svg>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" fill="currentColor" /></svg>
                           Saved
                         </>
                       ) : (
                         <>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                           Save place
                         </>
                       )}
@@ -725,7 +752,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                       <path d="M8 1.33L10.06 5.51L14.67 6.18L11.33 9.43L12.12 14.01L8 11.85L3.88 14.01L4.67 9.43L1.33 6.18L5.94 5.51L8 1.33Z"
                         fill={i <= Math.round(avgRating) ? '#F5A623' : 'none'}
                         stroke={i <= Math.round(avgRating) ? '#F5A623' : '#CBD5E1'}
-                        strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   ))}
                 </div>
@@ -776,6 +803,36 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   </span>
                 )}
               </div>
+
+              {/* Write a Review button — only shown when a location is selected */}
+              {selectedLocation?.id && (
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(true)}
+                  style={{
+                    marginTop: 14,
+                    width: '100%',
+                    padding: '9px 0',
+                    borderRadius: 8,
+                    border: '1px solid var(--theme-accent)',
+                    background: 'transparent',
+                    color: 'var(--theme-accent)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Write a Review
+                </button>
+              )}
             </div>
 
             {/* Noise through the day */}
@@ -823,7 +880,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                 <>
                   <div className="lmv-ai-header">
                     <span className="lmv-ai-badge">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2"/><path d="M5.25 7h3.5M7 5.25v3.5" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2" /><path d="M5.25 7h3.5M7 5.25v3.5" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round" /></svg>
                       AI confidence
                     </span>
                     <span className="lmv-ai-percent">{aiInsights.confidence}%</span>
@@ -836,7 +893,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   <div className="lmv-ai-insights">
                     <div className="lmv-ai-item">
                       <div className="lmv-ai-item-icon">
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5a5 5 0 0110 0" stroke="#f59e0b" strokeWidth="1.3" strokeLinecap="round"/><path d="M5 10.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5" stroke="#f59e0b" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5a5 5 0 0110 0" stroke="#f59e0b" strokeWidth="1.3" strokeLinecap="round" /><path d="M5 10.5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5" stroke="#f59e0b" strokeWidth="1.3" strokeLinecap="round" /></svg>
                       </div>
                       <div className="lmv-ai-item-text">
                         <h5>Noise</h5>
@@ -845,7 +902,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                     </div>
                     <div className="lmv-ai-item">
                       <div className="lmv-ai-item-icon">
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="4" r="2" stroke="#8b5cf6" strokeWidth="1.3"/><path d="M7.5 6v5M5.5 8.5l2 2.5 2-2.5" stroke="#8b5cf6" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="4" r="2" stroke="#8b5cf6" strokeWidth="1.3" /><path d="M7.5 6v5M5.5 8.5l2 2.5 2-2.5" stroke="#8b5cf6" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </div>
                       <div className="lmv-ai-item-text">
                         <h5>Lighting</h5>
@@ -854,7 +911,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                     </div>
                     <div className="lmv-ai-item">
                       <div className="lmv-ai-item-icon">
-                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5" stroke="#6b7280" strokeWidth="1.3"/><path d="M7.5 4v3.5l2.5 1.5" stroke="#6b7280" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="5" stroke="#6b7280" strokeWidth="1.3" /><path d="M7.5 4v3.5l2.5 1.5" stroke="#6b7280" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </div>
                       <div className="lmv-ai-item-text">
                         <h5>Best time</h5>
@@ -909,9 +966,9 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   <div className="cscore-value">{comfortScore} / 5</div>
                 </div>
                 <span className="lmv-tag green">
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2"/><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M12.25 7A5.25 5.25 0 111.75 7a5.25 5.25 0 0110.5 0z" stroke="#05360d" strokeWidth="1.2" /><path d="M4.5 7l2 2 3.5-3.5" stroke="#05360d" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                   {parseInt(breakdown.noise) >= parseInt(breakdown.crowd) && parseInt(breakdown.noise) >= parseInt(breakdown.lighting) ? 'Noise matters most' :
-                   parseInt(breakdown.crowd) >= parseInt(breakdown.lighting) ? 'Crowds matter most' : 'Lighting matters most'}
+                    parseInt(breakdown.crowd) >= parseInt(breakdown.lighting) ? 'Crowds matter most' : 'Lighting matters most'}
                 </span>
               </div>
 
@@ -958,7 +1015,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   {matchChecks.length > 0 ? matchChecks.map((check) => (
                     <div key={check} className="lmv-match-check">
                       <span className="lmv-check-icon">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="#05360d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="#05360d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                       </span>
                       {check}
                     </div>
@@ -976,7 +1033,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   <div className="lmv-trigger-chips">
                     {triggers.map((t) => (
                       <span key={t} className="lmv-trigger-chip">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75v3.5L9.33 7" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.75v3.5L9.33 7" stroke="#0f1720" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /><circle cx="7" cy="7" r="5.25" stroke="#0f1720" strokeWidth="1.2" /></svg>
                         {t}
                       </span>
                     ))}

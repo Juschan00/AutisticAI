@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useTheme } from '../theme/ThemeContext.jsx';
 import MapView from './MapView';
+import SubmitReview from './SubmitReview';
 import { getRankings, getLocationHeatmap, getLocationById, searchLocations } from '../services/api';
 import './NonLoginMapView.css';
 
@@ -50,6 +51,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
   const [searchNoResults, setSearchNoResults] = useState(false);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [showSigninDetail, setShowSigninDetail] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false); // NEW
 
   const toggleNavCollapse = () => setIsNavCollapsed((prev) => !prev);
   const toggleSigninDetail = () => setShowSigninDetail((prev) => !prev);
@@ -84,7 +86,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           setSnapshot({ calmCount, noiseTrend: scoreToLabel(avgNoise), avgComfort, bestWindow });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     getRankings()
       .then((res) => {
@@ -116,7 +118,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -149,6 +151,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
     if (!selectedLocation) return;
     setLocationDetail(null);
     setAvgRating(null);
+    setShowReviewForm(false); // close review form when switching locations
 
     const locId = selectedLocation.id;
     if (!locId) return;
@@ -162,7 +165,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           setAvgRating(avg);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [selectedLocation]);
 
   const handleFilterClick = (filter) => {
@@ -304,7 +307,31 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           heatmapData={heatmapData}
         />
       </div>
-      
+
+      {/* SubmitReview slide-in panel */}
+      {showReviewForm && selectedLocation && (
+        <SubmitReview
+          location={selectedLocation}
+          onClose={() => setShowReviewForm(false)}
+          onSubmitted={() => {
+            setShowReviewForm(false);
+            // Re-fetch location detail so review count updates
+            if (selectedLocation?.id) {
+              getLocationById(selectedLocation.id)
+                .then((res) => {
+                  const detail = res.data;
+                  setLocationDetail(detail);
+                  if (detail?.reviews?.length > 0) {
+                    const avg = detail.reviews.reduce((a, b) => a + (b.rating || 0), 0) / detail.reviews.length;
+                    setAvgRating(avg);
+                  }
+                })
+                .catch(() => { });
+            }
+          }}
+        />
+      )}
+
       <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 8, zIndex: 9999 }}>
         <button
           className="nlm-theme-btn nlm-theme-btn--text"
@@ -312,7 +339,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           style={{ cursor: 'pointer', border: heatmapOn ? '2px solid var(--theme-accent)' : '1px solid var(--theme-border)', background: 'var(--theme-surface)', padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500 }}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 12V8M8 12V4M12 12V6" stroke={heatmapOn ? "var(--theme-accent)" : "#6b7280"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           Heatmap
         </button>
@@ -325,7 +352,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
         {/* Fixed header / navigation bar */}
         <div className="nlm-sidebar-left-header">
           <div className="nlm-logo-row">
-              <div className="nlm-logo-group">
+            <div className="nlm-logo-group">
               <div className="nlm-logo-icon">
                 <img src="/favicon.png" alt="" />
               </div>
@@ -378,68 +405,68 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
         </div>
         {/* Scrollable body — scroll bar lives here, under the nav */}
         <div className="nlm-sidebar-left-body">
-        {/* Hero card */}
-        <div className="nlm-hero-card">
-          <div className="nlm-calm-badge">
-            ✨ Calm mode on
+          {/* Hero card */}
+          <div className="nlm-hero-card">
+            <div className="nlm-calm-badge">
+              ✨ Calm mode on
+            </div>
+            <h2>Find a place that feels better right now.</h2>
+            <p className="nlm-hero-desc">
+              {snapshot
+                ? `${snapshot.calmCount} calm places nearby • Noise trend: ${snapshot.noiseTrend} • Best: ${snapshot.bestWindow}`
+                : 'Only the most important details are shown: comfort, likely triggers, and best times to go.'}
+            </p>
           </div>
-          <h2>Find a place that feels better right now.</h2>
-          <p className="nlm-hero-desc">
-            {snapshot
-              ? `${snapshot.calmCount} calm places nearby • Noise trend: ${snapshot.noiseTrend} • Best: ${snapshot.bestWindow}`
-              : 'Only the most important details are shown: comfort, likely triggers, and best times to go.'}
-          </p>
-        </div>
 
-        {/* Quick Filters */}
-        <div className="nlm-filters">
-          <h3>Quick filters</h3>
-          <div className="nlm-filter-chips">
-            {QUICK_FILTERS.map((f) => (
-              <button
-                key={f.filter}
-                className={`nlm-filter-chip${activeFilter === f.filter ? ' active' : ''}`}
-                onClick={() => handleFilterClick(f.filter)}
-              >
-                {f.label}
-              </button>
-            ))}
+          {/* Quick Filters */}
+          <div className="nlm-filters">
+            <h3>Quick filters</h3>
+            <div className="nlm-filter-chips">
+              {QUICK_FILTERS.map((f) => (
+                <button
+                  key={f.filter}
+                  className={`nlm-filter-chip${activeFilter === f.filter ? ' active' : ''}`}
+                  onClick={() => handleFilterClick(f.filter)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        {/* Top Ranked */}
-        <div className="nlm-ranked">
-          <div className="nlm-ranked-header">
-            <h3>Top ranked sensory-friendly places</h3>
-            <p>Best options nearby with simple summaries.</p>
-          </div>
-          <div className="nlm-ranked-list">
-            {rankings.length > 0 ? rankings.map((place) => (
-              <div
-                key={place.id ?? place.name}
-                className="nlm-ranked-item"
-                role="button"
-                tabIndex={0}
-                onClick={() => handleLocationSelect(place)}
-                onKeyDown={(e) => e.key === 'Enter' && handleLocationSelect(place)}
-              >
-                <div className="nlm-ranked-info">
-                  <h4>{place.name}</h4>
-                  <p>{place.tags}</p>
+          {/* Top Ranked */}
+          <div className="nlm-ranked">
+            <div className="nlm-ranked-header">
+              <h3>Top ranked sensory-friendly places</h3>
+              <p>Best options nearby with simple summaries.</p>
+            </div>
+            <div className="nlm-ranked-list">
+              {rankings.length > 0 ? rankings.map((place) => (
+                <div
+                  key={place.id ?? place.name}
+                  className="nlm-ranked-item"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleLocationSelect(place)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLocationSelect(place)}
+                >
+                  <div className="nlm-ranked-info">
+                    <h4>{place.name}</h4>
+                    <p>{place.tags}</p>
+                  </div>
+                  <div className={`nlm-ranked-score ${place.tier}`}>
+                    {(place.score || 0).toFixed(1)}
+                  </div>
                 </div>
-                <div className={`nlm-ranked-score ${place.tier}`}>
-                  {(place.score || 0).toFixed(1)}
+              )) : (
+                <div style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+                  <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6, marginBottom: 8 }} />
+                  <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6, marginBottom: 8 }} />
+                  <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6 }} />
                 </div>
-              </div>
-            )) : (
-              <div style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
-                <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6, marginBottom: 8 }} />
-                <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6, marginBottom: 8 }} />
-                <div className="animate-pulse" style={{ height: 48, background: '#e5e7eb', borderRadius: 6 }} />
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </aside>
 
@@ -461,8 +488,8 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
               >
                 <div className="nlm-ratings-no-selection-icon" aria-hidden>
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                    <circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
                   </svg>
                 </div>
                 <span className="nlm-ratings-no-selection-label">Ratings</span>
@@ -498,7 +525,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                           fill={i <= starCount ? '#F5A623' : 'none'}
                           stroke={i <= starCount ? '#F5A623' : '#CBD5E1'}
                           strokeWidth={i <= starCount ? '0.5' : '1'}
-                          strokeLinecap="round" strokeLinejoin="round"/>
+                          strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                   ))}
@@ -548,6 +575,34 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                     </div>
                   </div>
                 )}
+
+                {/* Write a Review button — only shows when a location is selected */}
+                <button
+                  className="nlm-write-review-btn"
+                  onClick={() => setShowReviewForm(true)}
+                  style={{
+                    marginTop: 16,
+                    width: '100%',
+                    padding: '9px 0',
+                    borderRadius: 8,
+                    border: '1px solid var(--theme-accent)',
+                    background: 'transparent',
+                    color: 'var(--theme-accent)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Write a Review
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -558,7 +613,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
           <div className="nlm-signin-header">
             <div className="nlm-signin-icon">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.5 12.5C17.5 13.163 17.2366 13.7989 16.7678 14.2678C16.2989 14.7366 15.663 15 15 15H6.66667L2.5 17.5V5C2.5 4.33696 2.76339 3.70107 3.23223 3.23223C3.70107 2.76339 4.33696 2.5 5 2.5H15C15.663 2.5 16.2989 2.76339 16.7678 3.23223C17.2366 3.70107 17.5 4.33696 17.5 5V12.5Z" stroke="var(--theme-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17.5 12.5C17.5 13.163 17.2366 13.7989 16.7678 14.2678C16.2989 14.7366 15.663 15 15 15H6.66667L2.5 17.5V5C2.5 4.33696 2.76339 3.70107 3.23223 3.23223C3.70107 2.76339 4.33696 2.5 5 2.5H15C15.663 2.5 16.2989 2.76339 16.7678 3.23223C17.2366 3.70107 17.5 4.33696 17.5 5V12.5Z" stroke="var(--theme-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
             <div className="nlm-signin-text">
@@ -573,8 +628,8 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
               aria-haspopup="dialog"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M12 16v-4M12 8h.01"/>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4M12 8h.01" />
               </svg>
             </button>
           </div>
@@ -607,9 +662,9 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
 
           <button className="nlm-signin-btn" onClick={handleSignIn}>
             <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V14.25C15.75 14.6478 15.592 15.0294 15.3107 15.3107C15.0294 15.592 14.6478 15.75 14.25 15.75H11.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M7.5 12.75L11.25 9L7.5 5.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M11.25 9H2.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M11.25 2.25H14.25C14.6478 2.25 15.0294 2.40804 15.3107 2.68934C15.592 2.97064 15.75 3.35218 15.75 3.75V14.25C15.75 14.6478 15.592 15.0294 15.3107 15.3107C15.0294 15.592 14.6478 15.75 14.25 15.75H11.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M7.5 12.75L11.25 9L7.5 5.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M11.25 9H2.25" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Sign in
           </button>
@@ -636,7 +691,7 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
         <div className="nlm-search-bar-inner">
           <form className="nlm-search-row" onSubmit={handleSearch}>
             <div className="nlm-search-input">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
               <input
                 type="text"
                 placeholder="Search places or sensory needs"
@@ -647,8 +702,8 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
             </div>
             <button type="submit" className="nlm-search-btn">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2 8H14" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M8.66667 3.33L14 8L8.66667 12.67" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 8H14" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M8.66667 3.33L14 8L8.66667 12.67" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               Explore nearby
             </button>

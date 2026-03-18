@@ -654,7 +654,22 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                           <span className="lmv-nearby-distance">{getDistance(place)}</span>
                         </div>
                         <div className="lmv-nearby-card-info">
-                          <h4>{place.name}</h4>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <h4>{place.name}</h4>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(
+                                  `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`,
+                                  '_blank'
+                                );
+                              }}
+                              className="lmv-btn-directions-small"
+                              title="Get Directions"
+                            >
+                              Directions
+                            </button>
+                          </div>
                           <p className="card-tags">{place.tags}</p>
                           <p className="card-desc">{place.desc}</p>
                         </div>
@@ -719,27 +734,39 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                     {matchPercent !== null ? `${matchPercent}% match` : (userProfile ? '—' : 'Set up profile')}
                   </span>
                   {selectedLocation?.id && (
-                    <button
-                      type="button"
-                      className={savedPlaceIds.has(selectedLocation.id) ? 'lmv-btn-saved' : 'lmv-btn-save'}
-                      onClick={handleToggleSaved}
-                      disabled={saveLoading}
-                      aria-label={savedPlaceIds.has(selectedLocation.id) ? 'Remove from saved' : 'Save place'}
-                    >
-                      {saveLoading ? (
-                        <span className="lmv-save-loading">…</span>
-                      ) : savedPlaceIds.has(selectedLocation.id) ? (
-                        <>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" fill="currentColor" /></svg>
-                          Saved
-                        </>
-                      ) : (
-                        <>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                          Save place
-                        </>
-                      )}
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className={savedPlaceIds.has(selectedLocation.id) ? 'lmv-btn-saved' : 'lmv-btn-save'}
+                        onClick={handleToggleSaved}
+                        disabled={saveLoading}
+                        aria-label={savedPlaceIds.has(selectedLocation.id) ? 'Remove from saved' : 'Save place'}
+                      >
+                        {savedPlaceIds.has(selectedLocation.id) ? (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" fill="currentColor" /></svg>
+                            Saved
+                          </>
+                        ) : (
+                          <>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 14V3.333a1.333 1.333 0 00-1.333-1.333H4a1.333 1.333 0 00-1.333 1.333V14L8 11.333l5.333 2.667z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            Save place
+                          </>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className="lmv-btn-directions"
+                        onClick={() =>
+                          window.open(
+                            `https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`,
+                            '_blank'
+                          )
+                        }
+                      >
+                        Directions
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

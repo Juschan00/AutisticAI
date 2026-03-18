@@ -451,7 +451,22 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                   onKeyDown={(e) => e.key === 'Enter' && handleLocationSelect(place)}
                 >
                   <div className="nlm-ranked-info">
-                    <h4>{place.name}</h4>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <h4>{place.name}</h4>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(
+                            `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`,
+                            '_blank'
+                          );
+                        }}
+                        className="nlm-btn-directions-small"
+                        title="Get Directions"
+                      >
+                        Directions
+                      </button>
+                    </div>
                     <p>{place.tags}</p>
                   </div>
                   <div className={`nlm-ranked-score ${place.tier}`}>
@@ -577,32 +592,58 @@ function NonLoginMapView({ onExploreMap, onBackToHome, initialSearchQuery, initi
                 )}
 
                 {/* Write a Review button — only shows when a location is selected */}
-                <button
-                  className="nlm-write-review-btn"
-                  onClick={() => setShowReviewForm(true)}
-                  style={{
-                    marginTop: 16,
-                    width: '100%',
-                    padding: '9px 0',
-                    borderRadius: 8,
-                    border: '1px solid var(--theme-accent)',
-                    background: 'transparent',
-                    color: 'var(--theme-accent)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                  </svg>
-                  Write a Review
-                </button>
+                <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                  <button
+                    className="nlm-write-review-btn"
+                    onClick={() => setShowReviewForm(true)}
+                    style={{
+                      flex: 1,
+                      padding: '9px 0',
+                      borderRadius: 8,
+                      border: '1px solid var(--theme-accent)',
+                      background: 'transparent',
+                      color: 'var(--theme-accent)',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                    }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                    Write a Review
+                  </button>
+                  <button
+                    className="nlm-directions-btn"
+                    onClick={() =>
+                      window.open(
+                        `https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.latitude},${selectedLocation.longitude}`,
+                        '_blank'
+                      )
+                    }
+                    style={{
+                      padding: '0 12px',
+                      borderRadius: 8,
+                      border: '1px solid var(--theme-accent)',
+                      background: 'white',
+                      color: 'var(--theme-accent)',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    title="Get Directions"
+                  >
+                    Directions
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

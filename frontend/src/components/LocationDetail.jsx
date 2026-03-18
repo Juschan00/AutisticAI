@@ -101,7 +101,7 @@ function LocationDetail({ location, onClose }) {
                         }
                         className="ld-action-btn"
                     >
-                        🧭 Get Directions
+                        Get Directions
                     </button>
                 </div>
             </div>

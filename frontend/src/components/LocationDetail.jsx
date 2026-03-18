@@ -92,6 +92,17 @@ function LocationDetail({ location, onClose }) {
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor"><path d="M4 2v12l4-2 4 2V2z" strokeWidth="1.5"/></svg>
                         Save place
                     </button>
+                    <button
+                        onClick={() =>
+                            window.open(
+                                `https://www.google.com/maps/dir/?api=1&destination=${location.lat || location.latitude},${location.lng || location.longitude}`,
+                                '_blank'
+                            )
+                        }
+                        className="ld-action-btn"
+                    >
+                        🧭 Get Directions
+                    </button>
                 </div>
             </div>
 

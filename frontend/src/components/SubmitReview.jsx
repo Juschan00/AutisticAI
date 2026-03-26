@@ -50,6 +50,7 @@ function SubmitReview({ location, onClose, onSubmitted }) {
         crowdLevel: 5,
         bodyText: '',
         rating: 5,
+        visitTime: null,
     });
     const [submitting, setSubmitting] = useState(false);
     const [aiParsing, setAiParsing] = useState(false);
@@ -175,6 +176,7 @@ function SubmitReview({ location, onClose, onSubmitted }) {
             noiseLevel: formData.noiseLevel,
             lightingLevel: formData.lightingLevel,
             crowdLevel: formData.crowdLevel,
+            ...(formData.visitTime && { visitTime: formData.visitTime }),
             ...(photoUrl && { imageUrl: photoUrl }),
         };
 
@@ -304,6 +306,52 @@ function SubmitReview({ location, onClose, onSubmitted }) {
                                     boxSizing: 'border-box', fontFamily: 'inherit',
                                 }}
                             />
+                        </div>
+
+                        {/* Visit Time Selector */}
+                        <div style={{ marginBottom: 18 }}>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--theme-text, #0f1720)', marginBottom: 8 }}>
+                                When did you visit? <span style={{ fontWeight: 400, color: 'var(--theme-text-muted, #6b7280)' }}>(optional)</span>
+                            </label>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                {[
+                                    { id: 'morning', label: 'Morning', time: '6am–12pm' },
+                                    { id: 'afternoon', label: 'Afternoon', time: '12pm–5pm' },
+                                    { id: 'evening', label: 'Evening', time: '5pm–9pm' },
+                                    { id: 'night', label: 'Night', time: '9pm+' },
+                                ].map((opt) => (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={() => handleChange('visitTime', formData.visitTime === opt.id ? null : opt.id)}
+                                        style={{
+                                            flex: '1 1 calc(50% - 4px)',
+                                            padding: '10px 4px',
+                                            borderRadius: 20,
+                                            border: `1px solid ${formData.visitTime === opt.id ? 'var(--theme-accent)' : 'var(--theme-border)'}`,
+                                            background: formData.visitTime === opt.id ? 'var(--theme-accent)' : 'var(--theme-bg)',
+                                            color: formData.visitTime === opt.id ? '#fff' : 'var(--theme-text)',
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: 2,
+                                        }}
+                                    >
+                                        <span>{opt.label}</span>
+                                        <span style={{ 
+                                            fontSize: 10, 
+                                            fontWeight: 400, 
+                                            opacity: formData.visitTime === opt.id ? 0.9 : 0.6 
+                                        }}>
+                                            {opt.time}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Analyze with AI */}

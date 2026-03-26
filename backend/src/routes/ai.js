@@ -55,7 +55,10 @@ router.post("/insights/:locationId", requireAuth, syncUser, async (req, res) => 
     if (!location) return res.status(404).json({ error: "Location not found" });
     if (location.reviews.length === 0) return res.status(400).json({ error: "Location has no reviews" });
 
-    const reviewTexts = location.reviews.map((r) => r.bodyText).join("\n");
+    const reviewTexts = location.reviews.map((r) => {
+      const timeTag = r.visitTime ? `[${r.visitTime}] ` : "";
+      return `${timeTag}${r.bodyText}`;
+    }).join("\n");
 
     const prompt = `
 You are an AI assistant helping sensory-sensitive and autistic people find comfortable public spaces.

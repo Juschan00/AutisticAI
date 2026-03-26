@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import Map from 'react-map-gl/mapbox';
-import DeckGL from '@deck.gl/react';
+import { useState, useMemo, useCallback } from 'react';
+import Map, { useControl } from 'react-map-gl/mapbox';
+import { MapboxOverlay } from '@deck.gl/mapbox';
 import { ScatterplotLayer } from '@deck.gl/layers';
 import { HeatmapLayer } from '@deck.gl/aggregation-layers';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -24,9 +24,13 @@ function getComfortColor(score) {
     return [r, g, b, 220];
 }
 
-export default function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, heatmapData, flyToLocation }) {
-    const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+function DeckGLOverlay(props) {
+    const overlay = useControl(() => new MapboxOverlay(props));
+    overlay.setProps(props);
+    return null;
+}
 
+export default function MapView({ onLocationSelect, filter, searchResultsGeoJSON, heatmapEnabled, heatmapData, flyToLocation }) {
     const normalizedHeatmap = useMemo(() => {
         if (!heatmapData?.length) return [];
         return heatmapData.map((d) => ({
@@ -72,17 +76,17 @@ export default function MapView({ onLocationSelect, filter, searchResultsGeoJSON
             id: 'comfort-heatmap',
             data: filteredData,
             getPosition: d => d.position,
-            getWeight: d => Math.pow((d.comfort_score || 2.5), 2), // Exponential weight for calm places
+            getWeight: d => Math.pow((d.comfort_score || 2.5), 2),
             intensity: 8,
             radiusPixels: 120,
             threshold: 0.02,
             colorRange: [
-                [255, 230, 230], // Very faint red
-                [255, 204, 153], // Light orange
-                [255, 240, 153], // Light yellow
-                [204, 255, 204], // Pale green
-                [153, 255, 153], // Soft green
-                [102, 255, 178], // Bright mint (very calm)
+                [255, 230, 230],
+                [255, 204, 153],
+                [255, 240, 153],
+                [204, 255, 204],
+                [153, 255, 153],
+                [102, 255, 178],
             ]
         }),
         new ScatterplotLayer({
@@ -101,19 +105,21 @@ export default function MapView({ onLocationSelect, filter, searchResultsGeoJSON
         })
     ].filter(Boolean);
 
+    const initialViewState = flyToLocation
+        ? { ...INITIAL_VIEW_STATE, longitude: flyToLocation.longitude, latitude: flyToLocation.latitude, zoom: flyToLocation.zoom || 16 }
+        : INITIAL_VIEW_STATE;
+
     return (
-        <DeckGL
-            initialViewState={flyToLocation ? { ...viewState, longitude: flyToLocation.longitude, latitude: flyToLocation.latitude, zoom: flyToLocation.zoom || 16 } : viewState}
-            onViewStateChange={({ viewState }) => setViewState(viewState)}
-            controller={true}
-            layers={layers}
-            getTooltip={({ object }) => object && object.name}
+        <Map
+            initialViewState={initialViewState}
+            mapStyle="mapbox://styles/mapbox/light-v11"
+            mapboxAccessToken={MAPBOX_TOKEN}
             style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
         >
-            <Map
-                mapStyle="mapbox://styles/mapbox/light-v11"
-                mapboxAccessToken={MAPBOX_TOKEN}
+            <DeckGLOverlay
+                layers={layers}
+                getTooltip={({ object }) => object && object.name}
             />
-        </DeckGL>
+        </Map>
     );
 }

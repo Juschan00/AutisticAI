@@ -60,6 +60,7 @@ model Review {
   noiseLevel      Int?
   lightingLevel   Int?
   crowdLevel      Int?
+  visitTime      String?
 
   aiNoiseScore    Float?
   aiLightingScore Float?

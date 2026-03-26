@@ -1,0 +1,10 @@
+{
+  "name": "autistic-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:all": "npm run osm-import --prefix backend && npx -y concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:servers": "npx -y concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "osm-import": "npm run osm-import --prefix backend"
+  }
+}

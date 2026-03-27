@@ -10,7 +10,7 @@ import SensoryProfile from './SensoryProfile';
 import Settings from './Settings';
 import LogoutConfirmation from './LogoutConfirmation';
 import SubmitReview from './SubmitReview'; // NEW
-import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace } from '../services/api';
+import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace, checkIn } from '../services/api';
 import './LoggedInMapView.css';
 
 const NAV_ITEMS = [
@@ -78,6 +78,8 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [savedPlacesList, setSavedPlacesList] = useState([]);
   const [saveLoading, setSaveLoading] = useState(false);
   const [flyToLocation, setFlyToLocation] = useState(null);
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkedIn, setCheckedIn] = useState(false);
 
   const buildSnapshot = useCallback((data, coords) => {
     if (!Array.isArray(data) || data.length === 0) return;
@@ -105,7 +107,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     }
   }, [userCoords, heatmapData, buildSnapshot]);
 
-  // --- Mount: fetch heatmap, rankings, geolocation, match scores, profile, saved places ---
+  // --- Mount: fetch heatmap, rankings, geolocation ---
   useEffect(() => {
     getLocationHeatmap()
       .then((res) => {
@@ -140,13 +142,18 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
           })));
         }
       })
-      .catch(() => { });
+      .catch((err) => {
+        console.error('Failed to fetch rankings:', err);
+      });
 
     navigator.geolocation?.getCurrentPosition(
       (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => setUserCoords(null)
     );
+  }, []); // Only run on mount!
 
+  // --- Auth: fetch protected data when token is available ---
+  useEffect(() => {
     const fetchProtected = async () => {
       try {
         const token = await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
@@ -161,8 +168,11 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
             })
             .catch(() => { });
         }
-      } catch { /* not authenticated */ }
+      } catch (err) {
+        console.log('Not authenticated or token error:', err.message);
+      }
     };
+
     fetchProtected();
   }, [getAccessTokenSilently]);
 
@@ -184,6 +194,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
     setLocationDetail(null);
     setAvgRating(null);
     setShowReviewForm(false); // NEW — close review form when switching locations
+    setCheckedIn(false); // Reset check-in state
 
     const locId = selectedLocation.id;
     if (!locId) return;
@@ -280,6 +291,22 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
       // keep state unchanged on error
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    const locId = selectedLocation?.id;
+    if (!locId || checkInLoading) return;
+    setCheckInLoading(true);
+    try {
+      await checkIn(locId);
+      setCheckedIn(true);
+      // Auto-reset "Checked in" state after 3 seconds
+      setTimeout(() => setCheckedIn(false), 3000);
+    } catch {
+      // Error handling
+    } finally {
+      setCheckInLoading(false);
     }
   };
 
@@ -766,6 +793,41 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                       >
                         Directions
                       </button>
+                      <button
+                        type="button"
+                        className={`lmv-btn-checkin ${checkedIn ? 'checked-in' : ''}`}
+                        onClick={handleCheckIn}
+                        disabled={checkInLoading || checkedIn}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          background: checkedIn ? 'var(--theme-green-soft, #d6f5e1)' : 'var(--theme-surface, #fff)',
+                          color: checkedIn ? 'var(--theme-green-text, #05360d)' : 'var(--theme-text, #0f1720)',
+                          border: `1px solid ${checkedIn ? 'var(--theme-green-text, #05360d)' : 'var(--theme-border, #e5e7eb)'}`,
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: (checkInLoading || checkedIn) ? 'default' : 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {checkedIn ? (
+                          <>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7l2.5 2.5L10.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            Checked in
+                          </>
+                        ) : (
+                          <>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                              <path d="M7 1.75c-2.9 0-5.25 2.35-5.25 5.25 0 2.9 5.25 5.25 5.25 5.25s5.25-2.35 5.25-5.25c0-2.9-2.35-5.25-5.25-5.25z" stroke="currentColor" strokeWidth="1.2" />
+                              <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+                            </svg>
+                            I'm here
+                          </>
+                        )}
+                      </button>
                     </>
                   )}
                 </div>
@@ -786,7 +848,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
               )}
 
               {reviewCount === 0 ? (
-                <div style={{ padding: '12px 0', color: 'var(--theme-text-muted)', fontSize: 13, border: '1px solid var(--theme-border)', borderRadius: 8, padding: 12, marginTop: 8, background: 'var(--theme-tag-soft)' }}>
+                <div style={{ padding: '12px 0', color: 'var(--theme-text-muted)', fontSize: 13, border: '1px solid var(--theme-border)', borderRadius: 8, marginTop: 8, background: 'var(--theme-tag-soft)' }}>
                   <strong style={{ display: 'block', marginBottom: 4, color: 'var(--theme-text)' }}>No visits yet — be the first to check in</strong>
                   Default category estimates shown below — not real community data.
                 </div>

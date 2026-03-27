@@ -25,6 +25,7 @@ model User {
 
   savedPlaces    SavedPlace[]
   reviews        Review[]
+  checkIns       CheckIn[]
   sensoryProfile SensoryProfile?
 }
 
@@ -43,6 +44,7 @@ model Location {
 
   savedBy        SavedPlace[]
   reviews        Review[]
+  checkIns       CheckIn[]
   sensoryScores  SensoryScore?
 }
 
@@ -108,4 +110,17 @@ model SavedPlace {
   location   Location @relation(fields: [locationId], references: [id])
 
   @@unique([userId, locationId])
+}
+
+model CheckIn {
+  id         String   @id @default(uuid())
+  userId     String
+  locationId String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  location   Location @relation(fields: [locationId], references: [id])
+
+  @@index([userId])
+  @@index([locationId])
 }

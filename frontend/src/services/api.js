@@ -18,7 +18,11 @@ export const setTokenGetter = (fn) => {
 // ─── Request Interceptor (auth + logging) ────────────────────
 api.interceptors.request.use(
     async (config) => {
-        if (tokenGetter) {
+        // Skip token fetch for known public GET routes to avoid blocking if Auth0 is slow/hanging
+        const publicRoutes = ['/locations/heatmap', '/rankings', '/locations/match']; // Match is public in frontend sense even if partially protected
+        const isPublic = config.method === 'get' && publicRoutes.some(route => config.url.includes(route));
+
+        if (tokenGetter && !isPublic) {
             try {
                 const token = await tokenGetter();
                 if (token) {
@@ -130,6 +134,10 @@ export const uploadImage = (file) => {
     return api.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
+};
+
+export const checkIn = (locationId) => {
+    return api.post(`/checkins/${locationId}`);
 };
 
 export default api;

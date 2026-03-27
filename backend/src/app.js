@@ -11,6 +11,7 @@ import aiRoutes from "./routes/ai.js";
 import uploadRoutes from "./routes/upload.js";
 import savedPlacesRouter from "./routes/savedPlaces.js";
 import discoverRouter from "./routes/discover.js";
+import checkinsRouter from "./routes/checkins.js";
 
 dotenv.config();
 
@@ -30,5 +31,6 @@ app.use("/ai", aiRoutes);
 app.use("/upload", uploadRoutes);
 app.use("/saved-places", savedPlacesRouter);
 app.use("/discover", discoverRouter);
+app.use("/checkins", checkinsRouter);
 
 export default app;

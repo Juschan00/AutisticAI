@@ -24,36 +24,48 @@ router.get("/", async (req, res) => {
 })
 
 
-// GET /locations/heatmap — aggregated scores for deck.gl
+// GET /locations/heatmap — all locations with optional sensory scores for deck.gl
 router.get("/heatmap", async (req, res) => {
     try {
-        const scores = await prisma.sensoryScore.findMany({
-            include: {
-                location: {
+        const locations = await prisma.location.findMany({
+            take: 500,
+            select: {
+                id: true,
+                name: true,
+                category: true,
+                latitude: true,
+                longitude: true,
+                sensoryScores: {
                     select: {
-                        id: true,
-                        latitude: true,
-                        longitude: true,
-                        name: true,
-                        category: true,
+                        noiseScore: true,
+                        lightingScore: true,
+                        crowdScore: true,
+                        comfortScore: true,
+                        reviewCount: true,
                     }
                 }
             }
-        })
+        });
 
-        const heatMapData = scores.map((s) => ({
-            locationId: s.locationId,
-            longitude: s.location.longitude,
-            latitude: s.location.latitude,
-            name: s.location.name,
-            category: s.location.category,
-            noiseScore: s.noiseScore,
-            lightingScore: s.lightingScore,
-            crowdScore: s.crowdScore,
-            comfortScore: s.comfortScore,
-            reviewCount: s.reviewCount,
-        }))
-        res.json(heatMapData)
+        const heatMapData = locations
+            .filter(loc => loc.latitude != null && loc.longitude != null)
+            .map((loc) => {
+                const s = loc.sensoryScores;
+                return {
+                    locationId: loc.id,
+                    longitude: loc.longitude,
+                    latitude: loc.latitude,
+                    name: loc.name,
+                    category: loc.category,
+                    noiseScore: s?.noiseScore ?? null,
+                    lightingScore: s?.lightingScore ?? null,
+                    crowdScore: s?.crowdScore ?? null,
+                    comfortScore: s?.comfortScore ?? null,
+                    reviewCount: s?.reviewCount ?? 0,
+                };
+            });
+
+        res.json(heatMapData);
     } catch (error) {
         console.error("Full error:", JSON.stringify(error, null, 2));
         res.status(500).json({ error: error.message });

@@ -19,7 +19,7 @@ export const setTokenGetter = (fn) => {
 api.interceptors.request.use(
     async (config) => {
         // Skip token fetch for known public GET routes to avoid blocking if Auth0 is slow/hanging
-        const publicRoutes = ['/locations/heatmap', '/rankings', '/locations/match']; // Match is public in frontend sense even if partially protected
+        const publicRoutes = ['/locations/heatmap', '/rankings'];
         const isPublic = config.method === 'get' && publicRoutes.some(route => config.url.includes(route));
 
         if (tokenGetter && !isPublic) {
@@ -67,7 +67,7 @@ export const getLocationById = (id) => {
 };
 
 export const getLocationHeatmap = () => {
-    return api.get('/locations/heatmap');
+    return api.get('/locations/heatmap', { timeout: 60000 });
 };
 
 export const getLocationMatch = () => {
@@ -93,7 +93,7 @@ export const getReviewsByLocation = (locationId) => {
 
 // ─── Rankings ───────────────────────────────────────────────
 export const getRankings = (sortBy = 'comfort_score') => {
-    return api.get('/rankings', { params: { sort: sortBy } });
+    return api.get('/rankings', { params: { sort: sortBy }, timeout: 30000 });
 };
 
 // ─── Sensory Profile ────────────────────────────────────────

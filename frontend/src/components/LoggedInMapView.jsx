@@ -10,7 +10,7 @@ import SensoryProfile from './SensoryProfile';
 import Settings from './Settings';
 import LogoutConfirmation from './LogoutConfirmation';
 import SubmitReview from './SubmitReview'; // NEW
-import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace, checkIn } from '../services/api';
+import { getRankings, getLocationHeatmap, getLocationMatch, getSensoryProfile, updateSensoryProfile, getLocationById, getAIInsights, searchLocations, discoverLocations, getSavedPlaces, savePlace, removeSavedPlace, checkIn, submitReview } from '../services/api';
 import './LoggedInMapView.css';
 
 const NAV_ITEMS = [
@@ -80,6 +80,10 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const [flyToLocation, setFlyToLocation] = useState(null);
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkedIn, setCheckedIn] = useState(false);
+  const [checkInError, setCheckInError] = useState(null);
+  const [showQuickRating, setShowQuickRating] = useState(false);
+  const [quickRatingSubmitted, setQuickRatingSubmitted] = useState(false);
+  const [quickSelections, setQuickSelections] = useState({ noise: null, lighting: null, crowd: null });
 
   const buildSnapshot = useCallback((data, coords) => {
     if (!Array.isArray(data) || data.length === 0) return;
@@ -186,19 +190,9 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
       .finally(() => setSearchLoading(false));
   }, [initialSearchQuery]);
 
-  // --- When selected location changes: fetch detail + AI ---
-  useEffect(() => {
-    if (!selectedLocation) return;
-
-    setAiInsights(null);
-    setLocationDetail(null);
-    setAvgRating(null);
-    setShowReviewForm(false); // NEW — close review form when switching locations
-    setCheckedIn(false); // Reset check-in state
-
-    const locId = selectedLocation.id;
+  // --- Reusable: re-fetch location detail + AI insights ---
+  const refreshLocationData = useCallback(async (locId) => {
     if (!locId) return;
-
     getLocationById(locId)
       .then((res) => {
         const detail = res.data;
@@ -210,17 +204,27 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
       })
       .catch(() => { });
 
-    const fetchAI = async () => {
-      try {
-        setAiLoading(true);
-        await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
-        const res = await getAIInsights(locId);
-        setAiInsights(res.data);
-      } catch { /* AI not available */ }
-      finally { setAiLoading(false); }
-    };
-    fetchAI();
-  }, [selectedLocation, getAccessTokenSilently]);
+    try {
+      setAiLoading(true);
+      await getAccessTokenSilently({ authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE } });
+      const res = await getAIInsights(locId);
+      setAiInsights(res.data);
+    } catch { /* AI not available */ }
+    finally { setAiLoading(false); }
+  }, [getAccessTokenSilently]);
+
+  // --- When selected location changes: fetch detail + AI ---
+  useEffect(() => {
+    if (!selectedLocation) return;
+
+    setAiInsights(null);
+    setLocationDetail(null);
+    setAvgRating(null);
+    setShowReviewForm(false);
+    setCheckedIn(false);
+
+    refreshLocationData(selectedLocation.id);
+  }, [selectedLocation, refreshLocationData]);
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
@@ -297,16 +301,95 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
   const handleCheckIn = async () => {
     const locId = selectedLocation?.id;
     if (!locId || checkInLoading) return;
+    setCheckInError(null);
     setCheckInLoading(true);
+
+    // Option 1 — GPS proximity check
+    const withinRange = await new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(true); // fallback: allow if no GPS
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude: uLat, longitude: uLng } = pos.coords;
+          const locLat = selectedLocation?.latitude;
+          const locLng = selectedLocation?.longitude;
+          if (!locLat || !locLng) return resolve(true);
+          // Haversine distance in metres
+          const R = 6371000;
+          const dLat = (locLat - uLat) * Math.PI / 180;
+          const dLng = (locLng - uLng) * Math.PI / 180;
+          const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(uLat * Math.PI / 180) * Math.cos(locLat * Math.PI / 180) *
+            Math.sin(dLng / 2) ** 2;
+          const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          resolve(dist <= 200);
+        },
+        () => resolve(true), // GPS denied → allow anyway
+        { timeout: 5000 }
+      );
+    });
+
+    if (!withinRange) {
+      setCheckInError("You need to be at this location to check in.");
+      setCheckInLoading(false);
+      setTimeout(() => setCheckInError(null), 4000);
+      return;
+    }
+
     try {
       await checkIn(locId);
       setCheckedIn(true);
-      // Auto-reset "Checked in" state after 3 seconds
-      setTimeout(() => setCheckedIn(false), 3000);
-    } catch {
-      // Error handling
+      // Option 3 — show quick rating prompt after successful check-in
+      setTimeout(() => {
+        setShowQuickRating(true);
+      }, 600);
+      setTimeout(() => setCheckedIn(false), 4000);
+    } catch (err) {
+      // Option 2 — handle cooldown error from backend
+      const msg = err?.response?.data?.message;
+      if (err?.response?.status === 429 && msg) {
+        setCheckInError(msg);
+        setTimeout(() => setCheckInError(null), 5000);
+      }
     } finally {
       setCheckInLoading(false);
+    }
+  };
+
+  const handleQuickPick = async (dimension, value) => {
+    const locId = selectedLocation?.id;
+    if (!locId) return;
+
+    const updated = { ...quickSelections, [dimension]: value };
+    setQuickSelections(updated);
+
+    // Auto-submit once all 3 are selected
+    if (updated.noise !== null && updated.lighting !== null && updated.crowd !== null) {
+      // Map low/high picks to 1–10 sensory levels
+      const levelFor = (pick) => pick === 'low' ? 2 : 8;
+      const noiseLevel    = levelFor(updated.noise);
+      const lightingLevel = levelFor(updated.lighting);
+      const crowdLevel    = levelFor(updated.crowd);
+      // Rating: fewer stimuli = more comfortable
+      const avg = (noiseLevel + lightingLevel + crowdLevel) / 3;
+      const rating = avg <= 3 ? 5 : avg <= 6 ? 3 : 1;
+
+      // Build a descriptive sentence so Gemini has real text to analyze
+      const noiseText    = updated.noise    === 'low' ? 'quiet with minimal noise' : 'noisy';
+      const lightingText = updated.lighting === 'low' ? 'dim, soft lighting'       : 'bright lighting';
+      const crowdText    = updated.crowd    === 'low' ? 'very few people around'   : 'quite busy and crowded';
+      const bodyText = `Right now it is ${noiseText}, has ${lightingText}, and is ${crowdText}.`;
+
+      try {
+        await submitReview({ locationId: locId, bodyText, noiseLevel, lightingLevel, crowdLevel, rating });
+        refreshLocationData(locId);
+      } catch { /* silent */ }
+
+      setQuickRatingSubmitted(true);
+      setTimeout(() => {
+        setShowQuickRating(false);
+        setQuickRatingSubmitted(false);
+        setQuickSelections({ noise: null, lighting: null, crowd: null });
+      }, 2000);
     }
   };
 
@@ -603,19 +686,7 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                   onClose={() => setShowReviewForm(false)}
                   onSubmitted={() => {
                     setShowReviewForm(false);
-                    // Re-fetch so review count + scores update
-                    if (selectedLocation?.id) {
-                      getLocationById(selectedLocation.id)
-                        .then((res) => {
-                          const detail = res.data;
-                          setLocationDetail(detail);
-                          if (detail?.reviews?.length > 0) {
-                            const avg = detail.reviews.reduce((a, b) => a + (b.rating || 0), 0) / detail.reviews.length;
-                            setAvgRating(avg);
-                          }
-                        })
-                        .catch(() => { });
-                    }
+                    if (selectedLocation?.id) refreshLocationData(selectedLocation.id);
                   }}
                 />
               )}
@@ -829,6 +900,102 @@ function LoggedInMapView({ onBackToHome, initialSearchQuery, initialFilter }) {
                         )}
                       </button>
                     </>
+                  )}
+
+                  {/* Check-in error message (GPS / cooldown) */}
+                  {checkInError && (
+                    <div style={{
+                      marginTop: 8,
+                      padding: '8px 12px',
+                      background: '#fff3cd',
+                      border: '1px solid #f0c040',
+                      borderRadius: 8,
+                      fontSize: 12,
+                      color: '#7a5700',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                    }}>
+                      <span>⏱</span>
+                      {checkInError}
+                    </div>
+                  )}
+
+                  {/* Quick rating prompt — slides in after check-in */}
+                  {showQuickRating && (
+                    <div style={{
+                      marginTop: 10,
+                      padding: '12px 14px',
+                      background: 'var(--theme-surface, #fff)',
+                      border: '1px solid var(--theme-border, #e5e7eb)',
+                      borderRadius: 12,
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    }}>
+                      {quickRatingSubmitted ? (
+                        <div style={{ textAlign: 'center', fontSize: 13, color: '#2d7a4f', fontWeight: 600, padding: '4px 0' }}>
+                          ✓ Thanks! Updating insights…
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--theme-text-muted, #6b7280)', marginBottom: 10 }}>
+                            Right now here — tap each:
+                          </div>
+                          {[
+                            { dim: 'noise',    label: '🔊 Noise',    low: '🔇 Quiet',  high: '📢 Noisy'  },
+                            { dim: 'lighting', label: '💡 Lighting', low: '🕯️ Dim',    high: '☀️ Bright' },
+                            { dim: 'crowd',    label: '👥 Crowd',    low: '👤 Empty',  high: '🏙️ Busy'   },
+                          ].map(({ dim, label, low, high }) => (
+                            <div key={dim} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                              <span style={{ fontSize: 11, color: 'var(--theme-text-muted, #6b7280)', width: 62, flexShrink: 0 }}>{label}</span>
+                              {[{ val: 'low', text: low }, { val: 'high', text: high }].map(({ val, text }) => {
+                                const selected = quickSelections[dim] === val;
+                                return (
+                                  <button
+                                    key={val}
+                                    type="button"
+                                    onClick={() => handleQuickPick(dim, val)}
+                                    style={{
+                                      flex: 1,
+                                      padding: '5px 4px',
+                                      background: selected ? 'var(--theme-green-soft, #d6f5e1)' : 'var(--theme-bg, #f9fafb)',
+                                      border: `1px solid ${selected ? 'var(--theme-green-text, #2d7a4f)' : 'var(--theme-border, #e5e7eb)'}`,
+                                      borderRadius: 8,
+                                      cursor: 'pointer',
+                                      fontSize: 11,
+                                      fontWeight: selected ? 700 : 500,
+                                      color: selected ? 'var(--theme-green-text, #2d7a4f)' : 'var(--theme-text, #0f1720)',
+                                      transition: 'all 0.15s',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {text}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowQuickRating(false);
+                              setQuickSelections({ noise: null, lighting: null, crowd: null });
+                            }}
+                            style={{
+                              marginTop: 4,
+                              width: '100%',
+                              background: 'none',
+                              border: 'none',
+                              fontSize: 11,
+                              color: 'var(--theme-text-muted, #9ca3af)',
+                              cursor: 'pointer',
+                              padding: '2px 0',
+                            }}
+                          >
+                            Skip
+                          </button>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

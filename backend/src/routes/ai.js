@@ -55,7 +55,11 @@ router.post("/insights/:locationId", requireAuth, syncUser, async (req, res) => 
     if (!location) return res.status(404).json({ error: "Location not found" });
     if (location.reviews.length === 0) return res.status(400).json({ error: "Location has no reviews" });
 
-    const reviewTexts = location.reviews.map((r) => {
+    // Only include reviews that have actual text — blank quick-ratings add no signal
+    const reviewsWithText = location.reviews.filter((r) => r.bodyText && r.bodyText.trim().length > 0);
+    if (reviewsWithText.length === 0) return res.status(400).json({ error: "No text reviews yet" });
+
+    const reviewTexts = reviewsWithText.map((r) => {
       const timeTag = r.visitTime ? `[${r.visitTime}] ` : "";
       return `${timeTag}${r.bodyText}`;
     }).join("\n");

@@ -336,7 +336,7 @@ Full public map experience (no login required).
 Authenticated map with all features.
 - Nav tabs: Explore, Dashboard, Saved Places, Sensory Profile, Settings
 - Fetches: match scores, AI insights, saved places, user profile
-- Check-in flow: GPS guard → cooldown check → quick sensory rating prompt → AI refresh
+- Check-in flow: 1-hour cooldown → button shows "Checked in" for 3s then resets
 
 ### `MapView.jsx`
 Pure Mapbox GL + Deck.gl map component.
@@ -393,16 +393,13 @@ User fills form
   → recalculateScores() re-aggregates SensoryScore
 ```
 
-### 3. Check-in Flow (v2)
+### 3. Check-in Flow
 ```
 User taps "I'm here"
-  → GPS check: must be within 200m of location
   → POST /checkins/:locationId
   → Backend: 1-hour cooldown check (429 + minutesLeft if on cooldown)
-  → Success: quick sensory rating prompt
-     (Noise: Quiet/Noisy, Lighting: Dim/Bright, Crowd: Empty/Busy)
-  → Auto-submits review with descriptive text when all 3 selected
-  → AI insights refreshed
+  → Success: button changes to "Checked in" for 3 seconds then resets
+  → No GPS verification — any logged-in user can check in to any location
 ```
 
 ### 4. Personalised Matching
